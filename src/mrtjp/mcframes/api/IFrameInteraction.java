@@ -3,8 +3,9 @@
  * Created by MrTJP.
  * All rights reserved.
  */
-package mrtjp.relocation.api;
+package mrtjp.mcframes.api;
 
+import mrtjp.relocation.api.RelocationAPI;
 import net.minecraft.world.World;
 
 /**
@@ -13,7 +14,7 @@ import net.minecraft.world.World;
  * implement the IFrame interface. This class must be registered in
  * the {@link RelocationAPI}.
  */
-public abstract class IFrameInteraction implements IFrame
+public interface IFrameInteraction extends IFrame
 {
     /**
      * Check to see if this interaction can be executed at the given
@@ -26,5 +27,5 @@ public abstract class IFrameInteraction implements IFrame
      * @return True if this interaction is valid for the given
      *         location.
      */
-    public abstract boolean canInteract(World w, int x, int y, int z);
+    boolean canInteract(World w, int x, int y, int z);
 }

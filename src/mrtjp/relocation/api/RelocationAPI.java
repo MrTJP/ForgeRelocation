@@ -5,10 +5,6 @@
  */
 package mrtjp.relocation.api;
 
-import net.minecraft.block.Block;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 /**
@@ -47,7 +43,7 @@ public abstract class RelocationAPI
      *            default - to assign default mover
      *            mod:<modID> - to assign every block from a mod
      *            <modID>:<blockname> - to assign block from a mod for every meta
-                  <modID>:<blockname>m<meta> - to assign block from mod for specific meta
+     *            <modID>:<blockname>m<meta> - to assign block from mod for specific meta
      *
      * @param value The name of the mover to assign this block. A list of all available
      *              movers will show up in the configs.
@@ -67,7 +63,7 @@ public abstract class RelocationAPI
      *            default - to assign default mover
      *            mod:<modID> - to assign every block from a mod
      *            <modID>:<blockname> - to assign block from a mod for every meta
-                  <modID>:<blockname>m<meta> - to assign block from mod for specific meta
+     *            <modID>:<blockname>m<meta> - to assign block from mod for specific meta
      *
      * @param value The name of the mover to assign this block. A list of all available
      *              movers will show up in the configs.
@@ -75,111 +71,23 @@ public abstract class RelocationAPI
     public abstract void registerMandatoryMover(String key, String value);
 
     /**
-     * Used to register a custom placment that can define how a frame is placed.
-     * This is useful for cases such as if the frame is placed on a Multipart from
-     * the Forge Multipart API, this placement property can perform special actions
-     * that would add the frame to the multipart tile.
+     * Getter for the global Relocator object which is what is used
+     * to actually initiate movements.
      *
-     * @param placement The custom frame placement to register.
+     * @return The Relocator object
      */
-    public abstract void registerFramePlacement(IFramePlacement placement);
+    public abstract Relocator getRelocator();
 
     /**
-     * Used to register a {@link IFrameInteraction}, which is a class that
-     * can be used to add frame-like properties to any block.
+     * Used to check if the given block is currently moving. This method is
+     * client and server safe.
      *
-     * @param interaction The interaction to register.
-     */
-    public abstract void registerFrameInteraction(IFrameInteraction interaction);
-
-    /**
-     * Getter for the instance variable of the Frame block. Used if external
-     * implementations need the block. (i.e. registration purposes)
+     * @param world The world the block is in.
+     * @param x The x coordinate of the block.
+     * @param y The y coordinate of the block.
+     * @param z The z coordinate of the block.
      *
-     * @return The frame block.
+     * @return True if the block is currently moving.
      */
-    public abstract Block getFrameBlock();
-
-    /**
-     * Getter for the instance variable of the Motor block. Used if external
-     * implementations need the block. (i.e. registration purposes)
-     *
-     * @return The motor block.
-     */
-    public abstract Block getMotorBlock();
-
-
-    /** Utilities - used for silent block manipulation. Caution: May be removed.. **/
-
-    /**
-     * Used to set a block in the world to the given block without
-     * alerting the world of the change.
-     *
-     * @param w The world.
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
-     * @param b The block.
-     * @param meta Block metadata
-     */
-    public abstract void uncheckedSetBlock(World w, int x, int y, int z, Block b, int meta);
-
-    /**
-     * Used to set a tile entity in the world without alerting the
-     * world of the change.
-     *
-     * @param w The world.
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
-     * @param te The TileEntity.
-     */
-    public abstract void uncheckedSetTileEntity(World w, int x, int y, int z, TileEntity te);
-
-    /**
-     * Used to remove a tile entity in the world without alerting the
-     * world of the change.
-     *
-     * @param w The world.
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
-     */
-    public abstract void uncheckedRemoveTileEntity(World w, int x, int y, int z);
-
-    /**
-     * Used to retreive a tile from a world without alerting the world
-     * that the tile was fetched from memory.
-     *
-     * @param w The world.
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
-     * @return The TileEnity at the given coordinates
-     */
-    public abstract TileEntity uncheckedGetTileEntity(World w, int x, int y, int z);
-
-
-    /**
-     * Tessellates the frame model at the given coordinates. Useful for making
-     * your block look like the default frame block.
-     *
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
-     */
-    public abstract void renderFrame(double x, double y, double z);
-
-    /**
-     * Raytrace a frame block at the given world coords with start and end
-     * points of a ray.
-     *
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
-     * @param start The start point of the ray
-     * @param end The end point of the ray
-     * @return The object position if anything from the frame model was hit.
-     */
-    public abstract MovingObjectPosition raytraceFrame(double x, double y, double z, Vec3 start, Vec3 end);
+    public abstract boolean isMoving(World world, int x, int y, int z);
 }

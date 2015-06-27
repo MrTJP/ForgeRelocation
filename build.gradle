@@ -34,6 +34,7 @@ repositories {
 
 apply plugin: 'scala'
 apply plugin: 'forge'
+apply plugin: 'curseforge'
 
 group = "mrtjp"
 archivesBaseName = "ForgeRelocation"
@@ -58,7 +59,7 @@ dependencies {
 
 def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (System.getenv("BUILD_NUMBER") ?: "1")
 version = "${project.config.mod.version}."+build_number
-println config.mc.version+"-"+config.forge.version
+println "Starting build for $archivesBaseName $version for MC $config.mc.version-$config.forge.version"
 
 minecraft {
     version = config.mc.version+"-"+config.forge.version
@@ -133,6 +134,7 @@ task sourceJar(type: Jar) {
 task apiJar(type: Jar) {
     from(sourceSets.main.allSource) {
         include "**/relocation/api/**"
+        include "**/mcframes/api/**"
     }
     classifier = 'api'
 }
@@ -227,7 +229,7 @@ uploadArchives {
                         licenses {
                             license {
                                 name 'Restricted Public Software License (RPSL) v1.3.1'
-                                url 'https://raw.githubusercontent.com/MrTJP/ProjectRed/master/LICENSE.md'
+                                url 'https://raw.githubusercontent.com/MrTJP/'+project.archivesBaseName+'/master/LICENSE'
                                 distribution 'repo'
                             }
                         }
@@ -243,5 +245,20 @@ uploadArchives {
                 }
             }
         }
+    }
+}
+
+if (project.hasProperty('curseapi'))
+{
+    curse {
+        projectId = '232075'
+        apiKey = project.curseapi
+        releaseType = 'release'
+
+        relatedProject 'mrtjpcore': 'requiredLibrary'
+
+        additionalArtifact deobfJar
+        additionalArtifact sourceJar
+        additionalArtifact apiJar
     }
 }

@@ -9,7 +9,7 @@ import java.util.{Map => JMap}
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper.{INSTANCE => mapper}
 import cpw.mods.fml.relauncher.{IFMLCallHook, IFMLLoadingPlugin}
-import mrtjp.relocation.RelocationMod
+import mrtjp.relocation.handler.RelocationMod
 import net.minecraft.launchwrapper.{IClassTransformer, Launch}
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.tree._

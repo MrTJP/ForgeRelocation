@@ -1,29 +1,33 @@
-Forge Relocation
+ForgeRelocation
 ==========
-Forge Relocation is a mod created to handle the movement of blocks.  The aim is to allow developers to use the API toimplement ways to move their own blocks instead of having one mod handle them all in a very hacky and non-reliable manner.
+An API for handling the movement of blocks.
 - [![Build Status](https://travis-ci.org/MrTJP/ForgeRelocation.svg)](https://travis-ci.org/MrTJP/ForgeRelocation)
 - [Minecraft Forum Thread](http://www.minecraftforum.net/topic/1885652-)
 - [Website](http://projectredwiki.com)
 
-Note:
-----------
-Forge Relocation is currently in alpha stages of development.  Although it is fairly stable, the safety of your world is not guaranteed.
+Info
+-
+The ForgeRelocation API contains utility classes that can easily help move blocks.  Operation
+of the API is very simple.  Just specify the blocks, the direction, and the speed.  The
+rest will be taken care of.
+
+
+The MCFrames mod (included) contains a robust and highly configurable implementation of
+frames.  It also contains an API that can quickly resolve frame sticks.
+An example implementation of a motor block is included as well.
+
+Usage
+-
+The best way to use the API is to simply link the dev jar as a dependency in your IDE.
+
+However, both ForgeRelocation and MCFrames contains a self-contained API package.  If needed, they can be used,
+but it is recommended that they are not included. They should be used as a soft dependency.
+
+
+Development
+-
+If you would like to contribute to the API, a simple `./gradlew setupDecompWorkspace` followed by a `./gradlew idea` or
+`./gradlew eclipse` should set up the entire dev environment.
+
 
 *This mod is not affiliated with Minecraft Forge.*
-
-
-Developing:
-----------
-Setup is slightly different depending on what system and IDE you use.
-This assumes you know how to run gradle commands on your system.
-The base command, `./gradlew` being used below is for Linux or Unix based systems. For windows, this would simply change to `gradlew`.
-Of course, if you dont need to use the wrapper (as in, you have gradle installed on your system), you can simply go right to `gradle`.
-
-
-1. Clone repository to empty folder.
-2. Cd to the repository (folder where `src` and `resources` are located).
-3. Run `./gradlew setupDecompWorkspace` to set up an environment.
-4. Run `./gradlew eclipse` or `./gradlew idea` appropriately.
-5. Open your IDE using the generated files (i.e., for IDEA, a ProjectRed.ipr is generated in `./`)
-6. Edit, run, and debug your new code.
-7. Once its bug free and working, you may submit it as a PR to the main repo.

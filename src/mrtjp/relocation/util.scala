@@ -10,6 +10,7 @@ import java.util.{ArrayList => JAList, List => JList, Set => JSet, TreeSet => JT
 import codechicken.lib.vec.BlockCoord
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import mrtjp.core.vec.ModelRayTracer
+import mrtjp.mcframes.RenderFrame
 import net.minecraft.client.Minecraft
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
@@ -20,9 +21,6 @@ import scala.collection.immutable.HashSet
 
 object Utils
 {
-    def raytraceFrame(x:Double, y:Double, z:Double, start:Vec3, end:Vec3) =
-        ModelRayTracer.raytraceModel(x, y, z, start, end, RenderFrame.getFrameForRender)
-
     def rescheduleTicks(world:World, blocks:Set[BlockCoord], allBlocks:Set[BlockCoord], dir:Int) = world match
     {
         case world:WorldServer =>

@@ -10,9 +10,9 @@
   "credits": "",
   "logoFile": "",
   "screenshots": [],
-  "requiredMods": [ "Forge", "MrTJPCoreMod" ],
-  "dependencies": [ "MrTJPCoreMod" ],
-  "dependants" : [ "RelocationFMP" ],
+  "requiredMods": ["MrTJPCoreMod"],
+  "dependencies": [],
+  "dependants" : ["RelocationFMP"],
   "useDependencyInformation": true
 }
 ]
