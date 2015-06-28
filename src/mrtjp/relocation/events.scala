@@ -17,6 +17,7 @@ object RelocationEventHandler
     def worldUnload(event:WorldEvent.Unload)
     {
         RelocationSPH.onWorldUnload(event.world)
+        MovementManager2.onWorldUnload(event.world)
     }
 
     @SubscribeEvent
@@ -40,13 +41,6 @@ object RelocationEventHandler
             MovementManager2.onTick(false)
         }
     }
-
-    @SubscribeEvent
-    def clientTick(event:TickEvent.ClientTickEvent)
-    {
-        if (event.phase == TickEvent.Phase.END)
-            MovementManager2.onTick(true)
-    }
 }
 
 object RelocationClientEventHandler
@@ -63,5 +57,12 @@ object RelocationClientEventHandler
     def onRenderWorld(e:RenderWorldLastEvent)
     {
         MovingRenderer.onRenderWorldEvent()
+    }
+
+    @SubscribeEvent
+    def clientTick(event:TickEvent.ClientTickEvent)
+    {
+        if (event.phase == TickEvent.Phase.END)
+            MovementManager2.onTick(true)
     }
 }

@@ -84,7 +84,15 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
     def onWorldUnload(world:World)
     {
         if(!world.isRemote)
+        {
             updateMap.remove(world)
+            if (chunkWatchers.nonEmpty)
+            {
+                val players = getServerPlayers
+                for (p <- players) if (p.worldObj.provider.dimensionId == world.provider.dimensionId)
+                    chunkWatchers.remove(p.getEntityId)
+            }
+        }
     }
 
     def onChunkWatch(p:EntityPlayer, c:ChunkCoordIntPair)

@@ -27,14 +27,14 @@ public interface IFrame
      * @param x The x coordinate.
      * @param y The y coordinate.
      * @param z The z coordinate.
-     * @param side The side of the block, as a ForgeDirection
-     * @return True if the side can stick on to another block.
+     * @param side The side of this block, as a ForgeDirection
+     * @return True if the side can grab another block.
      */
     boolean stickOut(World w, int x, int y, int z, int side);
 
     /**
      * Used to check if this frame block can be grabbed on the
-     * given side from another frame.
+     * given side by another frame.
      *
      * Convention requires that this method yields the same result
      * on both client and server.
@@ -43,8 +43,8 @@ public interface IFrame
      * @param x The x coordinate.
      * @param y The y coordinate.
      * @param z The z coordinate.
-     * @param side The side of the block, as a ForgeDirection
-     * @return True if the side can be stuck onto by a frame block.
+     * @param side The side of this block, as a ForgeDirection
+     * @return True if the side can be grabbed by a frame block.
      */
     boolean stickIn(World w, int x, int y, int z, int side);
 }

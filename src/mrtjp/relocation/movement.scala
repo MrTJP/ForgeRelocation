@@ -10,12 +10,14 @@ import codechicken.lib.packet.PacketCustom
 import codechicken.lib.vec.BlockCoord
 import mrtjp.core.math.MathLib
 import mrtjp.core.world.WorldLib
-import mrtjp.relocation.handler.{RelocationSPH, RelocationConfig}
+import mrtjp.relocation.api.{IMovementCallback, IMovementDescriptor}
+import mrtjp.relocation.handler.{RelocationConfig, RelocationSPH}
 import net.minecraft.init.Blocks
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
 
 import scala.collection.mutable.{HashMap => MHashMap, MultiMap => MMultiMap, Set => MSet}
+import scala.ref.WeakReference
 
 object MovementManager2
 {
@@ -48,6 +50,7 @@ object MovementManager2
             val struct = new BlockStruct
             struct.id = id
             struct.readDesc(in)
+            addStructToWorld(w, struct)
             id = in.readUShort()
         }
     }
@@ -58,8 +61,8 @@ object MovementManager2
             val struct = new BlockStruct
             struct.id = in.readUShort()
             struct.readDesc(in)
-            getWorldStructs(w).addStruct(struct)
-            for (b <- struct.allBlocks)
+            addStructToWorld(w, struct)
+            for (b <- struct.allBlocks) //rerender all moving blocks
                 w.func_147479_m(b.x, b.y, b.z)
         case 2 =>
             val id = in.readUShort()
@@ -88,10 +91,16 @@ object MovementManager2
 
     def isMoving(w:World, x:Int, y:Int, z:Int) = getWorldStructs(w).contains(x, y, z)
 
+    def addStructToWorld(w:World, b:BlockStruct)
+    {
+        getWorldStructs(w).addStruct(b)
+        b.onAdded(w)
+    }
+
     def getEnclosedStructure(w:World, x:Int, y:Int, z:Int) =
         getWorldStructs(w).structs.find(_.contains(x, y, z)).orNull
 
-    def tryStartMove(w:World, blocks:Set[BlockCoord], moveDir:Int):Boolean =
+    def tryStartMove(w:World, blocks:Set[BlockCoord], moveDir:Int, speed:Double, c:IMovementCallback):Boolean =
     {
         if (blocks.size > RelocationConfig.moveLimit) return false
 
@@ -117,8 +126,10 @@ object MovementManager2
 
         val struct = new BlockStruct
         struct.id = BlockStruct.claimID()
+        struct.speed = speed
         struct.rows = rows
-        getWorldStructs(w).addStruct(struct)
+        struct.callback = WeakReference(c)
+        addStructToWorld(w, struct)
         sendStruct(w, struct)
 
         true
@@ -156,9 +167,9 @@ object MovementManager2
 
     def cycleMove(w:World, struct:BlockStruct)
     {
-        for (r <- struct.rows) r.doMove(w)
-        for (r <- struct.rows) r.postMove(w)
-        for (r <- struct.rows) r.endMove(w)
+        struct.doMove(w)
+        struct.postMove(w)
+        struct.endMove(w)
 
         Utils.rescheduleTicks(w, struct.preMoveBlocks, struct.allBlocks, struct.moveDir)
 
@@ -184,8 +195,8 @@ class WorldStructs
 
     def removeFinished() =
     {
-        val finished = structs.filter(_.finished)
-        structs = structs.filterNot(_.finished)
+        val finished = structs.filter(_.isFinished)
+        structs = structs.filterNot(_.isFinished)
         finished
     }
 
@@ -213,12 +224,34 @@ object BlockStruct
     }
 }
 
+class MoveDesc(b:WeakReference[BlockStruct]) extends IMovementDescriptor
+{
+    def this(b:BlockStruct) = this(new WeakReference(b))
+
+    override def isMoving = b match {
+        case WeakReference(b:BlockStruct) => !b.isFinished
+        case _ => false
+    }
+
+    override def getProgress = b match {
+        case WeakReference(b:BlockStruct) => b.progress
+        case _ => -1
+    }
+
+    override def getSize = b match {
+        case WeakReference(b:BlockStruct) => b.allBlocks.size
+        case _ => 0
+    }
+}
+
 class BlockStruct
 {
     var id = -1
-    var progress = 0.0D
     var speed = 1/16D
     var rows:Set[BlockRow] = Set.empty
+    var callback = WeakReference[IMovementCallback](null)
+
+    var progress = 0.0D
 
     lazy val allBlocks = rows.flatMap(_.allBlocks)
     lazy val preMoveBlocks = rows.flatMap(_.preMoveBlocks)
@@ -228,8 +261,9 @@ class BlockStruct
 
     def contains(x:Int, y:Int, z:Int) = rows.exists(_.contains(x, y, z))
 
-    def push(){ progress = (progress+speed) min 1.0D }
-    def finished = progress >= 1.0D
+    def push(){ progress = math.min(1.0, progress+speed) }
+
+    def isFinished = progress >= 1.0D
 
     def getChunks:Set[ChunkCoordIntPair] =
     {
@@ -237,6 +271,37 @@ class BlockStruct
         for (b <- allBlocks)
             c += new ChunkCoordIntPair(b.x>>4, b.z>>4)
         c.result()
+    }
+
+    def onAdded(w:World)
+    {
+        if (!w.isRemote) callback match
+        {
+            case WeakReference(c) =>
+                c.setDescriptor(new MoveDesc(this))
+                c.onMovementStarted()
+            case _ =>
+        }
+    }
+
+    def doMove(w:World)
+    {
+        for (r <- rows) r.doMove(w)
+    }
+
+    def postMove(w:World)
+    {
+        for (r <- rows) r.postMove(w)
+    }
+
+    def endMove(w:World)
+    {
+        for (r <- rows) r.endMove(w)
+        if (!w.isRemote) callback match
+        {
+            case WeakReference(c) => c.onMovementFinished()
+            case _ =>
+        }
     }
 
     override def equals(obj:scala.Any) = obj match
@@ -280,6 +345,7 @@ class BlockRow(val pos:BlockCoord, val moveDir:Int, val size:Int)
         import MathLib.{basis, normal, shift}
 
         import math.{max, min}
+
         if (normal(x, y, z, moveDir) == normal(pos, moveDir))
         {
             val b1 = basis(pos, moveDir)

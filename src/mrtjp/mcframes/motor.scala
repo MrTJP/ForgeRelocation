@@ -125,6 +125,7 @@ class TileMotor extends InstancedBlockTile with TTileOrient with IFrame
                 r.push()
                 r.setWorld(world)
                 r.setDirection(getMoveDir)
+                r.setSpeed(1/16D)
                 r.addBlocks(blocks)
                 r.execute()
                 r.pop()

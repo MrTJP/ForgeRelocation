@@ -18,7 +18,7 @@ import net.minecraft.world.World
 
 import scala.collection.JavaConversions._
 
-class BlockMovingRow extends InstancedBlock("relocation.BlockMovingRow", Material.iron)
+class BlockMovingRow extends InstancedBlock("relocation.blockmovingrow", Material.iron)
 {
     setHardness(-1F)
     setStepSound(Block.soundTypeGravel)
@@ -33,10 +33,14 @@ object TileMovingRow
         w.setBlock(r.pos.x, r.pos.y, r.pos.z, RelocationMod.blockMovingRow, 0, 3)
     }
 
-    def getBoxFor(w:World, r:BlockRow, progress:Double) =
+    def getBoxFor(w:World, r:BlockRow, progress:Double):Cuboid6 =
     {
         val p = r.pos.copy.offset(r.moveDir^1)
-        w.getBlock(p.x, p.y, p.z).getCollisionBoundingBoxFromPool(w, p.x, p.y, p.z) match
+        val bl = w.getBlock(p.x, p.y, p.z)
+
+        if (bl == RelocationMod.blockMovingRow) return Cuboid6.full.copy()
+
+        bl.getCollisionBoundingBoxFromPool(w, p.x, p.y, p.z) match
         {
             case aabb:AxisAlignedBB => new Cuboid6(aabb).sub(new Vector3(r.pos))
                     .add(new Vector3(BlockCoord.sideOffsets(r.moveDir))*progress)
