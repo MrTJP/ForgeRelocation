@@ -4,7 +4,7 @@
  * All rights reserved.
  */
 
-@API(owner = "ForgeRelocation", provides = "ForgeRelocation|API", apiVersion = "0.0.1a")
+@API(owner = "ForgeRelocation", provides = "ForgeRelocation|API", apiVersion = "@VERSION@.@BUILD_NUMBER@")
 package mrtjp.relocation.api;
 
 import cpw.mods.fml.common.API;

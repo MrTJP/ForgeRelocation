@@ -12,7 +12,7 @@
   "screenshots": [],
   "requiredMods": ["MrTJPCoreMod"],
   "dependencies": [],
-  "dependants" : ["RelocationFMP"],
+  "dependants" : [],
   "useDependencyInformation": true
 }
 ]

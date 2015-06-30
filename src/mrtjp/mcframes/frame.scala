@@ -102,11 +102,8 @@ object RenderFrame extends ISimpleBlockRenderingHandler
             "/assets/mcframes/obj/"+name+".obj").openStream(),
             7, InvertX).values())
 
-        m.shrinkUVs(0.0005)
         m.apply(new Scale(1.00075, 1.00075, 1.00075))
         m.apply(new Translation(Vector3.center))
-        m.computeNormals
-        m.computeLighting(LightModel.standardLightModel)
         m
     }
 
@@ -168,7 +165,7 @@ object RenderFrame extends ISimpleBlockRenderingHandler
         var m = models(mask&0x3F)
         if (m == null)
         {
-            m = combine(Seq(model, FrameModelGen.generate(mask)))
+            m = FrameModelGen.generate(model, mask)
             models(mask&0x3F) = m
         }
         m
@@ -183,7 +180,7 @@ object FrameModelGen
     val u = 0.5
     val v = 0.5
 
-    def generate(mask:Int) =
+    def generate(box:CCModel, mask:Int) =
     {
         var m = generateSinglePeg
         m = generateQuartRotated(m)
@@ -191,6 +188,7 @@ object FrameModelGen
         m = generateBackface(m)
 
         var b = Seq.newBuilder[CCModel]
+        b += box
         for (s <- 0 until 6) if ((mask&1<<s) == 0)
             b += generateSided(m.copy, s)
 
