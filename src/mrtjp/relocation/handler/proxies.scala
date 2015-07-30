@@ -36,6 +36,15 @@ class RelocationProxy_server
         API.registerPreferredMover("mod:EnderStorage", "coordpush")
         API.registerPreferredMover("mod:ChickenChunks", "coordpush")
         API.registerPreferredMover("mod:Translocator", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Compatibility", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Core", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Expansion", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Exploration", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Fabrication", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Illumination", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Integration", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Transmission", "coordpush")
+        API.registerPreferredMover("mod:ProjRed|Transportation", "coordpush")
     }
 
     def init()

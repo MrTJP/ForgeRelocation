@@ -22,10 +22,10 @@ import scala.collection.immutable.ListMap
 
 object MovingTileRegistry extends ITileMover
 {
-    val rKeyVal = raw"([\w:]+)\s*->\s*(.+)".r
-    val rName = raw"(.+)".r
-    val rNameMetaM = raw"(.+)m(\d+)".r
-    val rMod = raw"mod:(\w+)".r
+    val rKeyVal = raw"([^\s]+.+[^\s]+)\s*->\s*([^\s]+.+[^\s]+)".r
+    val rName = raw"([^\s]+.+[^\s]+)".r
+    val rNameMetaM = raw"([^\s]+.+[^\s]+)m(\d+)".r
+    val rMod = raw"mod:([^\s]+.+[^\s]+)".r
 
     var blockMetaMap = Map[(Block, Int), ITileMover]()
     var modMap = Map[String, ITileMover]()

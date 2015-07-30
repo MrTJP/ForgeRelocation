@@ -51,10 +51,11 @@ object TileMovingRow
 
 class TileMovingRow extends InstancedBlockTile
 {
+    var prevProg = 0.0
+
     override def update()
     {
         if (!MovementManager2.isMoving(world, x, y, z)) world.setBlockToAir(x, y, z)
-        else pushEntities()
     }
 
     override def getBlock = RelocationMod.blockMovingRow
@@ -72,24 +73,20 @@ class TileMovingRow extends InstancedBlockTile
 
     override def getCollisionBounds = getBlockBounds
 
-    def pushEntities()
+    def pushEntities(r:BlockRow, progress:Double)
     {
-        val s = MovementManager2.getEnclosedStructure(world, x, y, z)
-        if (s != null)
+        val box = Cuboid6.full.copy.add(new Vector3(r.preMoveBlocks.head))
+                .add(new Vector3(BlockCoord.sideOffsets(r.moveDir)).multiply(progress)).toAABB
+
+        val dp = (if (progress >= 1.0) progress+0.1 else progress)-prevProg
+        val d = new Vector3(BlockCoord.sideOffsets(r.moveDir))*dp
+        world.getEntitiesWithinAABBExcludingEntity(null, box) match
         {
-            val r = s.rows.find(_.contains(x, y, z)).get
-            val box = TileMovingRow.getBoxFor(world, r, s.progress).add(new Vector3(r.pos))
-            val d = new Vector3(BlockCoord.sideOffsets(r.moveDir))*s.speed
-            world.getEntitiesWithinAABBExcludingEntity(null, box.toAABB) match
-            {
-                case list:JList[_] => for (e <- list.asInstanceOf[JList[Entity]])
-                {
-                    e.moveEntity(0, d.y max 0, 0)
-                    e.addVelocity(d.x, d.y, d.z)
-                    e.velocityChanged = true
-                }
-                case _ =>
-            }
+            case list:JList[_] =>
+                for (e <- list.asInstanceOf[JList[Entity]]) e.moveEntity(d.x, d.y max 0, d.z)
+            case _ =>
         }
+
+        prevProg = progress
     }
 }

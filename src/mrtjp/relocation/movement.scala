@@ -8,10 +8,12 @@ package mrtjp.relocation
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.vec.BlockCoord
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import mrtjp.core.math.MathLib
 import mrtjp.core.world.WorldLib
 import mrtjp.relocation.api.{IMovementCallback, IMovementDescriptor}
 import mrtjp.relocation.handler.{RelocationConfig, RelocationSPH}
+import net.minecraft.client.Minecraft
 import net.minecraft.init.Blocks
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
@@ -24,10 +26,21 @@ object MovementManager2
     val serverRelocations = MHashMap[Int, WorldStructs]()
     val clientRelocations = MHashMap[Int, WorldStructs]()
 
-    def relocationMap(client:Boolean) = if (client) clientRelocations else serverRelocations
+    def relocationMap(isClient:Boolean) = if (isClient) clientRelocations else serverRelocations
 
     def getWorldStructs(w:World) =
         relocationMap(w.isRemote).getOrElseUpdate(w.provider.dimensionId, new WorldStructs)
+
+    def getWorld(dim:Int, isClient:Boolean) =
+        if (!isClient) DimensionManager.getWorld(dim)
+        else getClientWorld(dim)
+
+    @SideOnly(Side.CLIENT)
+    private def getClientWorld(dim:Int):World =
+    {
+        val w = Minecraft.getMinecraft.theWorld
+        if (w.provider.dimensionId == dim) w else null
+    }
 
     def writeDesc(w:World, chunks:Set[ChunkCoordIntPair], out:MCDataOutput) =
     {
@@ -135,16 +148,23 @@ object MovementManager2
         true
     }
 
-    def onTick(client:Boolean)
+    def onTick(isClient:Boolean)
     {
-        val map = relocationMap(client)
-        map.values.foreach(_.pushAll())
-        if (!client)
+        val map = relocationMap(isClient)
+        for ((dim, ws) <- map) if (ws.nonEmpty)
+        {
+            ws.pushAll()
+            val world = getWorld(dim, isClient)
+            if (world != null) for (bs <- ws.structs) for (br <- bs.rows)
+                br.pushEntities(world, bs.progress)
+        }
+
+        if (!isClient)
         {
             val fin = map.map(pair => (pair._1, pair._2.removeFinished())).filter(_._2.nonEmpty)
             for ((dim, b) <- fin)
             {
-                val w = DimensionManager.getWorld(dim)
+                val w = getWorld(dim, false)
                 if (w != null) for (s <- b)
                 {
                     cycleMove(w, s)
@@ -162,6 +182,7 @@ object MovementManager2
     def clientCycleMove(w:World, struct:BlockStruct)
     {
         getWorldStructs(w).removeStruct(struct)
+        struct.rows.foreach(_.pushEntities(w, 1.0))
         cycleMove(w, struct)
     }
 
@@ -186,6 +207,8 @@ class WorldStructs
     var structs:Set[BlockStruct] = Set.empty
 
     def isEmpty = structs.isEmpty
+
+    def nonEmpty = !isEmpty
 
     def contains(x:Int, y:Int, z:Int) = structs.exists(_.contains(x, y, z))
 
@@ -353,6 +376,15 @@ class BlockRow(val pos:BlockCoord, val moveDir:Int, val size:Int)
             min(b1, b2) to max(b1, b2) contains basis(x, y, z, moveDir)
         }
         else false
+    }
+
+    def pushEntities(w:World, progress:Double)
+    {
+        WorldLib.uncheckedGetTileEntity(w, pos.x, pos.y, pos.z) match
+        {
+            case te:TileMovingRow => te.pushEntities(this, progress)
+            case _ =>
+        }
     }
 
     def doMove(w:World)
