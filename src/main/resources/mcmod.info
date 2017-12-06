@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "ForgeRelocation",
+    "name": "ForgeRelocation",
+    "description": "Move blocks from one place to another",
+    "version": "@VERSION@",
+    "mcversion": "@MC_VERSION@",
+    "url": "https://github.com/MrTJP/ForgeRelocation",
+    "authors": ["MrTJP", "the_real_farfetchd"],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "requiredMods": ["MrTJPCoreMod"],
+    "dependencies": [],
+    "dependants": [],
+    "useDependencyInformation": true
+  }
+]

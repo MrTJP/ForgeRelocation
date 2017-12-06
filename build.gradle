@@ -1,219 +1,57 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 buildscript {
     repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'scala'
+
+version = "0.0.2"
+group = "mrtjp.forgerelocation"
+archivesBaseName = "forgerelocation"
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+compileScala {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "1.12.2-14.23.0.2501"
+    runDir = "run"
+    mappings = "snapshot_20170624"
 }
 
 repositories {
+    jcenter()
     maven {
-        name "chickenbones"
-        url "http://chickenbones.net/maven/"
+        url "https://modmaven.k-4u.nl/"
     }
-
-    maven {
-        name "mvnmrtjp"
-        url "http://files.projectredwiki.com/maven"
-    }
-}
-
-apply plugin: 'scala'
-apply plugin: 'forge'
-apply plugin: 'curseforge'
-
-group = "mrtjp"
-archivesBaseName = "ForgeRelocation"
-
-ext.configFile = file "build.properties"
-configFile.withReader {
-    def prop = new Properties()
-    prop.load(it)
-    //Referred to as 'config' or 'project.config'
-    project.ext.config = new ConfigSlurper().parse prop
-}
-
-configurations {
-    deployerJars
 }
 
 dependencies {
-    deployerJars "org.apache.maven.wagon:wagon-ftp:2.2"
-    compile "codechicken:CodeChickenLib:${config.mc.version}-${config.ccl.version}:dev"
-    compile "mrtjp:MrTJPCore:${config.mc.version}-${config.mrtjp.version}:dev"
+    compile projectOrMvn(":MrTJPCore", "mrtjp:MrTJPCore:+:deobf")
+    compile projectOrMvn(":CodeChickenLib", "codechicken:CodeChickenLib:+:deobf")
+
+    compile "org.scala-lang:scala-library:2.11.+"
+    compile "org.scala-lang:scala-compiler:2.11.+"
 }
 
-def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (System.getenv("BUILD_NUMBER") ?: "1")
-version = "${project.config.mod.version}."+build_number
-println "Starting build for $archivesBaseName $version for MC $config.mc.version-$config.forge.version"
-
-minecraft {
-    version = config.mc.version+"-"+config.forge.version
-    if (file('../run').exists()) {
-        runDir = "../run"
-    } else {
-        runDir = "run"
-    }
-}
-
-sourceSets {
-    main {
-        def root = project.projectDir
-        scala {
-            srcDir new File(root, "src")
-        }
-        resources {
-            srcDir new File(root, "resources")
-        }
-    }
-}
-
-task updateVersion(type: Copy) {
-    // Replace tokens
-    from(sourceSets.main.scala.srcDirs)
-    into 'build/sources/scala'
-    filter(ReplaceTokens, tokens: [
-            'VERSION'      : config.mod.version,
-            'BUILD_NUMBER' : build_number,
-            'MC_VERSION'   : config.mc.version,
-            'FORGE_VERSION': config.forge.version,
-            'CCL_VERSION'  : config.ccl.version,
-            'MRTJP_VERSION': config.mrtjp.version
-    ])
-}
+def projectOrMvn(String project, String artifact) { findProject(project) ?: artifact }
 
 processResources {
-    //redo task if any of these properties change
-    inputs.property "version", project.version
-    inputs.property "mc.version", config.mc.version
-
-    // Replace properties in all files
     from(sourceSets.main.resources.srcDirs) {
-        include '**.info'
-        filter(ReplaceTokens, tokens: [
-                'VERSION'      : config.mod.version,
-                'BUILD_NUMBER' : build_number,
-                'MC_VERSION'   : config.mc.version,
-                'FORGE_VERSION': config.forge.version,
-                'CCL_VERSION'  : config.ccl.version,
-                'MRTJP_VERSION': config.mrtjp.version
-        ])
+        include 'mcmod.info'
+        expand 'version': project.version, 'mcversion': project.minecraft.version
     }
-    // Copy everything else
+
     from(sourceSets.main.resources.srcDirs) {
-        include 'assets/**/*.*'
-    }
-}
-
-compileScala.dependsOn updateVersion
-
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'dev'
-}
-
-task sourceJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
-task apiJar(type: Jar) {
-    from(sourceSets.main.allSource) {
-        include "**/relocation/api/**"
-        include "**/mcframes/api/**"
-    }
-    classifier = 'api'
-}
-
-jar {
-    manifest {
-        attributes 'FMLCorePlugin': 'mrtjp.relocation.asm.RelocationPlugin'
-        attributes 'FMLCorePluginContainsFMLMod': 'true'
-    }
-    classifier = 'universal'
-}
-
-artifacts {
-    archives deobfJar
-    archives sourceJar
-    archives apiJar
-}
-
-uploadArchives {
-    dependsOn 'reobf'
-    repositories {
-        if (project.hasProperty("mavenurl")) {
-            mavenDeployer {
-                configuration = configurations.deployerJars
-
-                repository(url: project.mavenurl) {
-                    authentication(userName: project.mavenusername, password: project.mavenpassword)
-                }
-
-                pom {
-                    groupId = project.group
-                    version = "${project.minecraft.version}-${project.version}"
-                    artifactId = project.archivesBaseName
-                    project {
-                        name project.archivesBaseName
-                        packaging 'jar'
-                        description project.archivesBaseName
-                        url 'https://github.com/MrTJP/'+project.archivesBaseName
-
-                        scm {
-                            url 'https://github.com/MrTJP/'+project.archivesBaseName
-                            connection 'scm:git:git://github.com/MrTJP/'+project.archivesBaseName+'.git'
-                            developerConnection 'scm:git:git@github.com:MrTJP/'+project.archivesBaseName+'.git'
-                        }
-
-                        issueManagement {
-                            system 'github'
-                            url 'https://github.com/MrTJP/'+project.archivesBaseName+'/issues'
-                        }
-
-                        licenses {
-                            license {
-                                name 'Restricted Public Software License (RPSL) v1.3.1'
-                                url 'https://raw.githubusercontent.com/MrTJP/'+project.archivesBaseName+'/master/LICENSE'
-                                distribution 'repo'
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id 'mrtjp'
-                                name 'mrtjp'
-                                roles { role 'developer' }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-if (project.hasProperty('curseapi')) {
-    curse {
-        projectId = '232075'
-        apiKey = project.curseapi
-        releaseType = 'release'
-
-        relatedProject 'mrtjpcore': 'requiredLibrary'
-
-        additionalArtifact deobfJar
-        additionalArtifact sourceJar
-        additionalArtifact apiJar
+        exclude 'mcmod.info'
     }
 }
