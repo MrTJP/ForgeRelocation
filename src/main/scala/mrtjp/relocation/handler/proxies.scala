@@ -8,12 +8,17 @@ package mrtjp.relocation.handler
 import codechicken.lib.packet.PacketCustom
 import mrtjp.relocation._
 import mrtjp.relocation.api.RelocationAPI.{instance => API}
+import mrtjp.relocation.handler.RelocationMod.blockMovingRow
+import net.minecraft.block.Block
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.RegistryEvent.Register
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class RelocationProxy_server {
   def preinit() {
-    RelocationMod.blockMovingRow = new BlockMovingRow
+    blockMovingRow = new BlockMovingRow
 
     API.registerTileMover("saveload",
       "Saves the tile and then reloads it in the next position. Reliable but CPU intensive.",
@@ -52,6 +57,11 @@ class RelocationProxy_server {
 
     MinecraftForge.EVENT_BUS.register(RelocationEventHandler)
   }
+
+  @SubscribeEvent
+  def registerBlocks(e: Register[Block]): Unit = {
+    e.getRegistry.registerAll(blockMovingRow)
+  }
 }
 
 class RelocationProxy_client extends RelocationProxy_server {
@@ -63,5 +73,3 @@ class RelocationProxy_client extends RelocationProxy_server {
     MinecraftForge.EVENT_BUS.register(RelocationClientEventHandler)
   }
 }
-
-object RelocationProxy extends RelocationProxy_client

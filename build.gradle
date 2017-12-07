@@ -30,14 +30,14 @@ minecraft {
 
 repositories {
     jcenter()
-    maven {
-        url "https://modmaven.k-4u.nl/"
-    }
+    maven { url "https://modmaven.k-4u.nl/" }
 }
 
 dependencies {
-    compile projectOrMvn(":MrTJPCore", "mrtjp:MrTJPCore:+:deobf")
-    compile projectOrMvn(":CodeChickenLib", "codechicken:CodeChickenLib:+:deobf")
+    compile projectOrMvn(":MrTJPCore", "mrtjp:MrTJPCore:1.12.2-+:deobf")
+    compile projectOrMvn(":CodeChickenLib", "codechicken:CodeChickenLib:1.12-+:deobf")
+
+    runtime "mezz.jei:jei_${project.minecraft.version}:+"
 
     compile "org.scala-lang:scala-library:2.11.+"
     compile "org.scala-lang:scala-compiler:2.11.+"

@@ -8,7 +8,7 @@ package mrtjp.mcframes
 import codechicken.lib.vec._
 import mrtjp.core.block.BlockCore
 import mrtjp.mcframes.api.{IFrame, IFramePlacement, MCFramesAPI}
-import mrtjp.relocation.handler.RelocationMod
+import mrtjp.mcframes.handler.MCFramesMod
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
 import net.minecraft.block.{Block, SoundType}
@@ -25,7 +25,7 @@ class BlockFrame extends BlockCore(Material.WOOD) with IFrame {
   setHardness(2.0F)
   setSoundType(SoundType.WOOD)
   setCreativeTab(CreativeTabs.TRANSPORTATION)
-  setRegistryName(new ResourceLocation(RelocationMod.modID, "frame"))
+  setRegistryName(new ResourceLocation(MCFramesMod.modID, "frame"))
 
   override def getItemBlockClass: Class[ItemBlockFrame] = classOf[ItemBlockFrame]
 

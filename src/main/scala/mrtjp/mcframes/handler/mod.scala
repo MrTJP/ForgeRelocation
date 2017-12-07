@@ -7,9 +7,10 @@ package mrtjp.mcframes.handler
 
 import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.mcframes.api.MCFramesAPI
-import mrtjp.mcframes.{BlockFrame, BlockMotor, StickRegistry}
+import mrtjp.mcframes.{BlockFrame, BlockMotor, ItemBlockFrame, StickRegistry}
 import net.minecraft.client.gui.GuiScreen
-import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.{Mod, SidedProxy}
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 
 @Mod(modid = MCFramesMod.modID, useMetadata = true, modLanguage = "scala", guiFactory = "mrtjp.mcframes.handler.GuiConfigFactory")
@@ -24,20 +25,24 @@ object MCFramesMod {
   var blockFrame: BlockFrame = _
   var blockMotor: BlockMotor = _
 
+  @SidedProxy(clientSide = "mrtjp.mcframes.handler.MCFramesProxy_client", serverSide = "mrtjp.mcframes.handler.MCFramesProxy_server")
+  var proxy: MCFramesProxy_server = _
+
   @Mod.EventHandler
   def preInit(event: FMLPreInitializationEvent) {
-    MCFramesProxy.preinit()
+    MinecraftForge.EVENT_BUS.register(proxy)
+    proxy.preinit()
   }
 
   @Mod.EventHandler
   def init(event: FMLInitializationEvent) {
     MCFramesConfig.loadConfig()
-    MCFramesProxy.init()
+    proxy.init()
   }
 
   @Mod.EventHandler
   def postInit(event: FMLPostInitializationEvent) {
-    MCFramesProxy.postinit()
+    proxy.postinit()
   }
 }
 

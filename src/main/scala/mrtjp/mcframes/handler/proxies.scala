@@ -9,6 +9,10 @@ import java.lang.{Character => JC}
 
 import mrtjp.mcframes._
 import mrtjp.mcframes.handler.MCFramesMod._
+import net.minecraft.block.Block
+import net.minecraft.item.{Item, ItemBlock}
+import net.minecraftforge.event.RegistryEvent.Register
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class MCFramesProxy_server {
@@ -22,6 +26,19 @@ class MCFramesProxy_server {
   }
 
   def postinit() {}
+
+  @SubscribeEvent
+  def registerBlocks(e: Register[Block]): Unit = {
+    e.getRegistry.registerAll(blockMotor, blockFrame)
+  }
+
+  @SubscribeEvent
+  def registerItems(e: Register[Item]): Unit = {
+    e.getRegistry.registerAll(
+      new ItemBlock(blockMotor).setRegistryName(blockMotor.getRegistryName),
+      new ItemBlockFrame(blockFrame).setRegistryName(blockFrame.getRegistryName)
+    )
+  }
 }
 
 class MCFramesProxy_client extends MCFramesProxy_server {
@@ -36,8 +53,6 @@ class MCFramesProxy_client extends MCFramesProxy_server {
     //    RenderingRegistry.registerBlockHandler(RenderFrame)
   }
 }
-
-object MCFramesProxy extends MCFramesProxy_client
 
 object MCFramesRecipes {
   def initRecipes() {

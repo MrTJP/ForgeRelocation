@@ -9,8 +9,9 @@ import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.relocation.api._
 import mrtjp.relocation.{BlockMovingRow, MovingTileRegistry}
 import net.minecraft.client.gui.GuiScreen
-import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
+import net.minecraftforge.fml.common.{Mod, SidedProxy}
 import org.apache.logging.log4j.{LogManager, Logger}
 
 @Mod(modid = RelocationMod.modID, useMetadata = true, modLanguage = "scala", guiFactory = "mrtjp.relocation.handler.GuiConfigFactory")
@@ -26,21 +27,25 @@ object RelocationMod {
 
   var blockMovingRow: BlockMovingRow = _
 
+  @SidedProxy(clientSide = "mrtjp.relocation.handler.RelocationProxy_client", serverSide = "mrtjp.relocation.handler.RelocationProxy_server")
+  var proxy: RelocationProxy_server = _
+
   @Mod.EventHandler
   def preInit(event: FMLPreInitializationEvent) {
-    RelocationProxy.preinit()
+    MinecraftForge.EVENT_BUS.register(proxy)
+    proxy.preinit()
   }
 
   @Mod.EventHandler
   def init(event: FMLInitializationEvent) {
     RelocationAPI_Impl.isPreInit = false
     RelocationConfig.loadConfig()
-    RelocationProxy.init()
+    proxy.init()
   }
 
   @Mod.EventHandler
   def postInit(event: FMLPostInitializationEvent) {
-    RelocationProxy.postinit()
+    proxy.postinit()
   }
 }
 

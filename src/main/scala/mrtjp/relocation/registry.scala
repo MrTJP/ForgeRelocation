@@ -5,22 +5,21 @@
  */
 package mrtjp.relocation
 
+import mrtjp.Implicits._
 import mrtjp.core.world.WorldLib
 import mrtjp.core.world.WorldLib._
 import mrtjp.relocation.api.ITileMover
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.Loader
 
 import scala.collection.immutable.ListMap
-import mrtjp.Implicits._
-import net.minecraft.block.state.IBlockState
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.math.BlockPos
-
 import scala.util.matching.Regex
 
 object MovingTileRegistry extends ITileMover {
@@ -42,15 +41,10 @@ object MovingTileRegistry extends ITileMover {
   def parseKV(kv: Seq[String]): Seq[(String, String)] =
     kv.map { case rKeyVal(k, v) => (k, v); case s => throw new MatchError(s"Illegal [k -> v] pair: $s") }
 
-  def parseBlockMeta(b: String): IBlockState = b match {
-    case rNameMetaM(name, meta) => Block.getBlockFromName(fixName(name)).getStateFromMeta(meta.toInt)
-    case rName(name) => Block.getBlockFromName(fixName(name)).getDefaultState
+  def parseBlockMeta(b: String): Option[IBlockState] = b match {
+    case rNameMetaM(name, meta) => Option(Block.getBlockFromName(name)).map(_.getStateFromMeta(meta.toInt))
+    case rName(name) => Option(Block.getBlockFromName(name)).map(_.getDefaultState)
     case _ => throw new MatchError(s"Illegal set part: $b")
-  }
-
-  def fixName(name: String): String = name.indexOf(':') match {
-    case -1 => "minecraft:" + name
-    case _ => name
   }
 
   def parseAndSetMovers(kv: Seq[String]): Array[String] = {
@@ -67,7 +61,7 @@ object MovingTileRegistry extends ITileMover {
     that match {
       case "default" => defaultMover = h
       case rMod(mod) if Loader.isModLoaded(mod) => modMap += mod -> h
-      case _ => blockMetaMap += parseBlockMeta(that) -> h
+      case _ => parseBlockMeta(that).foreach(blockMetaMap += _ -> h) // TODO: Throw error when this is None
     }
   }
 
