@@ -23,8 +23,8 @@ class BlockMovingRow extends MultiTileBlock(Material.IRON) {
   setHardness(-1F)
   setSoundType(SoundType.GROUND)
   setCreativeTab(null)
-  addTile(classOf[TileMovingRow], 0)
   setRegistryName(new ResourceLocation(RelocationMod.modID, "blockmovingrow"))
+  addTile(classOf[TileMovingRow], 0)
 }
 
 object TileMovingRow {

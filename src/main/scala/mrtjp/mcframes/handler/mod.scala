@@ -16,7 +16,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 object MCFramesMod {
   MCFramesAPI.instance = MCFramesAPI_Impl
 
-  final val modID = "MCFrames"
+  final val modID = "mcframes"
   final val modName = "MCFrames"
   final val version = "@VERSION@"
   final val buildnumber = "@BUILD_NUMBER@"

@@ -17,36 +17,43 @@ import net.minecraftforge.fml.common.Loader
 
 import scala.collection.immutable.ListMap
 import mrtjp.Implicits._
+import net.minecraft.block.state.IBlockState
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 
+import scala.util.matching.Regex
+
 object MovingTileRegistry extends ITileMover {
-  val rKeyVal = raw"([^\s]+.+[^\s]+)\s*->\s*([^\s]+.+[^\s]+)".r
-  val rName = raw"([^\s]+.+[^\s]+)".r
-  val rNameMetaM = raw"([^\s]+.+[^\s]+)m(\d+)".r
-  val rMod = raw"mod:([^\s]+.+[^\s]+)".r
+  val rKeyVal: Regex = raw"([^\s]+.+[^\s]+)\s*->\s*([^\s]+.+[^\s]+)".r
+  val rName: Regex = raw"([^\s]+.+[^\s]+)".r
+  val rNameMetaM: Regex = raw"([^\s]+.+[^\s]+)m(\d+)".r
+  val rMod: Regex = raw"mod:([^\s]+.+[^\s]+)".r
 
-  var blockMetaMap = Map[(Block, Int), ITileMover]()
-  var modMap = Map[String, ITileMover]()
+  var blockMetaMap: Map[IBlockState, ITileMover] = Map()
+  var modMap: Map[String, ITileMover] = Map()
 
-  var moverDescMap = Map[String, String]()
-  var moverNameMap = Map[String, ITileMover]()
+  var moverDescMap: Map[String, String] = Map()
+  var moverNameMap: Map[String, ITileMover] = Map()
 
   var defaultMover: ITileMover = _
-  var preferredMovers = Seq[(String, String)]()
-  var mandatoryMovers = Seq[(String, String)]()
+  var preferredMovers: Seq[(String, String)] = Seq()
+  var mandatoryMovers: Seq[(String, String)] = Seq()
 
-  def parseKV(kv: Seq[String]) = kv.map { case rKeyVal(k, v) => (k, v); case s => throw new MatchError(s"Illegal [k -> v] pair: $s") }
-  def parseBlockMeta(b: String) = b match {
-    case rNameMetaM(name, meta) => Block.getBlockFromName(fixName(name)) -> meta.toInt
-    case rName(name) => Block.getBlockFromName(fixName(name)) -> -1
+  def parseKV(kv: Seq[String]): Seq[(String, String)] =
+    kv.map { case rKeyVal(k, v) => (k, v); case s => throw new MatchError(s"Illegal [k -> v] pair: $s") }
+
+  def parseBlockMeta(b: String): IBlockState = b match {
+    case rNameMetaM(name, meta) => Block.getBlockFromName(fixName(name)).getStateFromMeta(meta.toInt)
+    case rName(name) => Block.getBlockFromName(fixName(name)).getDefaultState
     case _ => throw new MatchError(s"Illegal set part: $b")
   }
-  def fixName(name: String) = name.indexOf(':') match {
+
+  def fixName(name: String): String = name.indexOf(':') match {
     case -1 => "minecraft:" + name
-    case i => name
+    case _ => name
   }
 
-  def parseAndSetMovers(kv: Seq[String]) = {
+  def parseAndSetMovers(kv: Seq[String]): Array[String] = {
     var moverMap = ListMap(parseKV(kv): _*)
     for ((k, v) <- preferredMovers) if (!moverMap.contains(k)) moverMap += k -> v
     for (pair <- mandatoryMovers) moverMap += pair
@@ -69,60 +76,41 @@ object MovingTileRegistry extends ITileMover {
     moverNameMap += name -> m
   }
 
-  private def getHandler(b: Block, m: Int) = {
-    blockMetaMap.getOrElse((b, m), blockMetaMap.getOrElse((b, -1),
-      modMap.getOrElse(b.getRegistryName.getResourceDomain, defaultMover)))
-  }
+  private def getHandler(state: IBlockState): ITileMover =
+    blockMetaMap.getOrElse(state, blockMetaMap.getOrElse(state.getBlock.getDefaultState,
+      modMap.getOrElse(state.getBlock.getRegistryName.getResourceDomain, defaultMover)))
 
-  override def canMove(w: World, pos: BlockPos) = {
-    val meta = w.getBlockMeta(x, y, z)
-    w.getBlock(x, y, z) match {
-      case Some(block) => getHandler(block, meta).canMove(w, x, y, z)
-      case None => false
-    }
-  }
+  override def canMove(w: World, pos: BlockPos): Boolean =
+    getHandler(w.getBlockState(pos)).canMove(w, pos)
 
-  override def move(w: World, pos: BlockPos, side: Int) {
-    val meta = w.getBlockMetadata(x, y, z)
-    w.getBlock(x, y, z) match {
-      case Some(block) => getHandler(block, meta).move(w, x, y, z, side)
-      case None =>
-    }
-  }
+  override def move(w: World, pos: BlockPos, side: EnumFacing): Unit =
+    getHandler(w.getBlockState(pos)).move(w, pos, side)
 
-  override def postMove(w: World, pos: BlockPos) {
-    val meta = w.getBlockMetadata(x, y, z)
-    w.getBlock(x, y, z) match {
-      case Some(block) => getHandler(block, meta).postMove(w, x, y, z)
-      case None =>
-    }
-  }
+  override def postMove(w: World, pos: BlockPos): Unit =
+    getHandler(w.getBlockState(pos)).postMove(w, pos)
 
-  def canRunOverBlock(w: World, pos: BlockPos) = {
-    if (w.blockExists(x, y, z))
-      w.isAirBlock(x, y, z) || WorldLib.isBlockSoft(w, x, y, z, w.getBlock(x, y, z))
-    else false
-  }
+  // FIXME World#blockExists == World#isBlockLoaded?
+  def canRunOverBlock(w: World, pos: BlockPos): Boolean =
+    w.isBlockLoaded(pos) &&
+      (w.isAirBlock(pos) || WorldLib.isBlockSoft(w, pos, w.getBlockState(pos)))
 }
 
 class CoordPushTileMover extends ITileMover {
   override def canMove(w: World, pos: BlockPos) = true
 
-  override def move(w: World, pos: BlockPos, side: Int) {
-    val (b, meta, te) = getBlockInfo(w, x, y, z)
-    val pos = new BlockCoord(x, y, z).offset(side)
+  override def move(w: World, posIn: BlockPos, side: EnumFacing) {
+    val (state, te) = w.getBlockAndTE(posIn)
+    val pos = posIn.offset(side)
     if (te != null) {
       te.invalidate()
-      uncheckedRemoveTileEntity(w, x, y, z)
+      uncheckedRemoveTileEntity(w, pos)
     }
-    uncheckedSetBlock(w, x, y, z, Blocks.air, 0)
-    uncheckedSetBlock(w, pos.x, pos.y, pos.z, b, meta)
+    uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
+    uncheckedSetBlock(w, pos, state)
     if (te != null) {
-      te.xCoord = pos.x
-      te.yCoord = pos.y
-      te.zCoord = pos.z
+      te.setPos(pos)
       te.validate()
-      uncheckedSetTileEntity(w, pos.x, pos.y, pos.z, te)
+      uncheckedSetTileEntity(w, pos, te)
     }
   }
 
@@ -132,26 +120,25 @@ class CoordPushTileMover extends ITileMover {
 class SaveLoadTileMover extends ITileMover {
   override def canMove(w: World, pos: BlockPos) = true
 
-  override def move(w: World, pos: BlockPos, side: Int) {
-    val (state, te) = getBlockInfo(w, pos)
-    val pos = pos.offset(side)
+  override def move(w: World, posIn: BlockPos, side: EnumFacing) {
+    val (state, te) = w.getBlockAndTE(posIn)
+    val pos = posIn.offset(side)
     val tag = if (te != null) {
       val tag = new NBTTagCompound
       te.writeToNBT(tag)
-      tag.setInteger("x", pos.x)
-      tag.setInteger("y", pos.y)
-      tag.setInteger("z", pos.z)
+      tag.setInteger("x", pos.getX)
+      tag.setInteger("y", pos.getY)
+      tag.setInteger("z", pos.getZ)
       te.onChunkUnload()
-      w.removeTileEntity(x, y, z)
+      w.removeTileEntity(pos)
       tag
     }
     else null
     uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
     uncheckedSetBlock(w, pos, state)
     if (tag != null) {
-      TileEntity.createAndLoadEntity(tag) match {
-        case te: TileEntity =>
-          w.getChunkFromBlockCoords(pos.x, pos.z).addTileEntity(te)
+      TileEntity.create(w, tag) match {
+        case te: TileEntity => w.getChunkFromBlockCoords(pos).addTileEntity(te)
         case _ =>
       }
     }
@@ -163,7 +150,7 @@ class SaveLoadTileMover extends ITileMover {
 class StaticTileMover extends ITileMover {
   override def canMove(w: World, pos: BlockPos) = false
 
-  override def move(w: World, pos: BlockPos, side: Int) {}
+  override def move(w: World, pos: BlockPos, side: EnumFacing) {}
 
   override def postMove(w: World, pos: BlockPos) {}
 }

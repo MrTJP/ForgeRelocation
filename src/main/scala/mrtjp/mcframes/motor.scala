@@ -28,8 +28,8 @@ class BlockMotor extends MultiTileBlock(Material.IRON) {
   setResistance(10f)
   setSoundType(SoundType.METAL)
   setCreativeTab(CreativeTabs.TRANSPORTATION)
-  addTile(classOf[TileMotor], 0)
   setRegistryName(new ResourceLocation(MCFramesMod.modID, "motor"))
+  addTile(classOf[TileMotor], 0)
 
   override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = true
 }
@@ -55,7 +55,7 @@ class TileMotor extends MTBlockTile with TTileOrient with IFrame {
     out.writeByte(orientation)
   }
 
-  override def read(in: MCDataInput, key: Int) = key match {
+  override def read(in: MCDataInput, key: Int): Unit = key match {
     case 2 =>
       orientation = in.readByte()
       markRender()

@@ -42,7 +42,8 @@ object RelocationCPH extends RelocationPH with IClientPacketHandler {
     catch {
       case e: RuntimeException if e.getMessage.startsWith("DC: ") =>
         // FIXME: No idea if this is correct
-        netHandler.handleDisconnect(new SPacketDisconnect(ITextComponent.Serializer.jsonToComponent(s"{text:\"${e.getMessage.substring(4)}\"")))
+        netHandler.handleDisconnect(new SPacketDisconnect(ITextComponent.Serializer.jsonToComponent(
+          "{\"text\":\"%s\"}".format(e.getMessage.substring(4)))))
     }
   }
 
@@ -101,8 +102,7 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler {
   }
 
   private def getServerPlayers: Seq[EntityPlayerMP] =
-    FMLCommonHandler.instance().getMinecraftServerInstance.getConfigurationManager.playerEntityList
-      .asInstanceOf[JList[EntityPlayerMP]]
+    FMLCommonHandler.instance().getMinecraftServerInstance.getPlayerList.getPlayers
 
   private def sendData(players: Seq[EntityPlayerMP]) {
     for (p <- players if chunkWatchers.containsKey(p.getEntityId)) {

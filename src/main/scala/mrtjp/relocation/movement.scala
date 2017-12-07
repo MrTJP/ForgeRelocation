@@ -21,19 +21,19 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection.mutable.{HashMap => MHashMap, MultiMap => MMultiMap, Set => MSet}
 import scala.ref.WeakReference
-
 import mrtjp.Implicits.{facing2int, int2facing}
 
 object MovementManager2 {
-  val serverRelocations = MHashMap[Int, WorldStructs]()
-  val clientRelocations = MHashMap[Int, WorldStructs]()
+  val serverRelocations: MHashMap[Int, WorldStructs] = MHashMap()
+  val clientRelocations: MHashMap[Int, WorldStructs] = MHashMap()
 
-  def relocationMap(isClient: Boolean) = if (isClient) clientRelocations else serverRelocations
+  def relocationMap(isClient: Boolean): MHashMap[Int, WorldStructs] =
+    if (isClient) clientRelocations else serverRelocations
 
-  def getWorldStructs(w: World) =
+  def getWorldStructs(w: World): WorldStructs =
     relocationMap(w.isRemote).getOrElseUpdate(w.provider.getDimension, new WorldStructs)
 
-  def getWorld(dim: Int, isClient: Boolean) =
+  def getWorld(dim: Int, isClient: Boolean): World =
     if (!isClient) DimensionManager.getWorld(dim)
     else getClientWorld(dim)
 
@@ -43,7 +43,7 @@ object MovementManager2 {
     if (w.provider.getDimension == dim) w else null
   }
 
-  def writeDesc(w: World, chunks: Set[ChunkPos], out: MCDataOutput) = {
+  def writeDesc(w: World, chunks: Set[ChunkPos], out: MCDataOutput): Boolean = {
     var send = false
     for (s <- getWorldStructs(w).structs if s.getChunks.exists(chunks.contains)) {
       send = true
@@ -54,7 +54,7 @@ object MovementManager2 {
     send
   }
 
-  def readDesc(w: World, in: MCDataInput) {
+  def readDesc(w: World, in: MCDataInput): Unit = {
     var id = in.readUShort()
     while (id != Short.MaxValue) {
       val struct = new BlockStruct
@@ -65,7 +65,7 @@ object MovementManager2 {
     }
   }
 
-  def read(w: World, in: MCDataInput, key: Int) = key match {
+  def read(w: World, in: MCDataInput, key: Int): Unit = key match {
     case 1 =>
       val struct = new BlockStruct
       struct.id = in.readUShort()
@@ -83,21 +83,21 @@ object MovementManager2 {
       s"Skipped ${in.asInstanceOf[PacketCustom].array().length} bytes.")
   }
 
-  def sendStruct(w: World, struct: BlockStruct) {
+  def sendStruct(w: World, struct: BlockStruct): Unit = {
     val out = RelocationSPH.getStream(w, struct.getChunks, 1)
     out.writeShort(struct.id)
     struct.writeDesc(out)
     RelocationSPH.forceSendData()
   }
 
-  def sendCycle(w: World, struct: BlockStruct) {
+  def sendCycle(w: World, struct: BlockStruct): Unit = {
     RelocationSPH.getStream(w, struct.getChunks, 2).writeShort(struct.id)
     RelocationSPH.forceSendData()
   }
 
   def isMoving(w: World, pos: BlockPos): Boolean = getWorldStructs(w).contains(pos)
 
-  def addStructToWorld(w: World, b: BlockStruct) {
+  def addStructToWorld(w: World, b: BlockStruct): Unit = {
     getWorldStructs(w).addStruct(b)
     b.onAdded(w)
   }
@@ -123,7 +123,7 @@ object MovementManager2 {
     }
 
     val rows = rowB.result()
-    if (rows.exists(row => !MovingTileRegistry.canRunOverBlock(w, row.pos.x, row.pos.y, row.pos.z))) return false
+    if (rows.exists(row => !MovingTileRegistry.canRunOverBlock(w, row.pos))) return false
     for (r <- rows) TileMovingRow.setBlockForRow(w, r)
 
     val struct = new BlockStruct
@@ -177,7 +177,7 @@ object MovementManager2 {
 
     val changes = MSet[BlockPos]()
     for (r <- struct.rows) r.cacheChanges(w, changes)
-    for (bc <- changes) w.notifyBlockOfNeighborChange(bc.x, bc.y, bc.z, Blocks.air)
+    for (bc <- changes) w.neighborChanged(bc, Blocks.AIR, bc) // FIXME: Update source block?
 
     Utils.rerenderBlocks(w, struct.preMoveBlocks)
   }
@@ -186,28 +186,28 @@ object MovementManager2 {
 class WorldStructs {
   var structs: Set[BlockStruct] = Set.empty
 
-  def isEmpty = structs.isEmpty
+  def isEmpty: Boolean = structs.isEmpty
 
-  def nonEmpty = !isEmpty
+  def nonEmpty: Boolean = !isEmpty
 
-  def contains(pos: BlockPos) = structs.exists(_.contains(x, y, z))
+  def contains(pos: BlockPos): Boolean = structs.exists(_.contains(pos))
 
-  def addStruct(b: BlockStruct) {
+  def addStruct(b: BlockStruct): Unit = {
     structs += b
   }
 
-  def pushAll() {
+  def pushAll(): Unit = {
     structs.foreach(_.push())
   }
 
-  def removeFinished() = {
+  def removeFinished(): Set[BlockStruct] = {
     val finished = structs.filter(_.isFinished)
     structs = structs.filterNot(_.isFinished)
     finished
   }
 
-  def removeStruct(s: BlockStruct) {
-    structs = structs.filterNot(_ == s)
+  def removeStruct(s: BlockStruct): Unit = {
+    structs -= s
   }
 
   def clear() {
@@ -221,7 +221,7 @@ class WorldStructs {
 
 object BlockStruct {
   private var maxID = 0
-  def claimID() = {
+  def claimID(): Int = {
     if (maxID < 32765) maxID += 1 //little less than Short.MaxValue (reserved for terminator)
     else maxID = 0
     maxID
@@ -231,48 +231,48 @@ object BlockStruct {
 class MoveDesc(b: WeakReference[BlockStruct]) extends IMovementDescriptor {
   def this(b: BlockStruct) = this(new WeakReference(b))
 
-  override def isMoving = b match {
+  override def isMoving: Boolean = b match {
     case WeakReference(b: BlockStruct) => !b.isFinished
     case _ => false
   }
 
-  override def getProgress = b match {
+  override def getProgress: Double = b match {
     case WeakReference(b: BlockStruct) => b.progress
     case _ => -1
   }
 
-  override def getSize = b match {
+  override def getSize: Int = b match {
     case WeakReference(b: BlockStruct) => b.allBlocks.size
     case _ => 0
   }
 }
 
 class BlockStruct {
-  var id = -1
-  var speed = 1 / 16D
+  var id: Int = -1
+  var speed: Double = 1 / 16D
   var rows: Set[BlockRow] = Set.empty
-  var callback = WeakReference[IMovementCallback](null)
+  var callback: WeakReference[IMovementCallback] = WeakReference(null)
 
   var progress = 0.0D
 
-  lazy val allBlocks = rows.flatMap(_.allBlocks)
-  lazy val preMoveBlocks = rows.flatMap(_.preMoveBlocks)
-  lazy val postMoveBlocks = rows.flatMap(_.postMoveBlocks)
+  lazy val allBlocks: Set[BlockPos] = rows.flatMap(_.allBlocks)
+  lazy val preMoveBlocks: Set[BlockPos] = rows.flatMap(_.preMoveBlocks)
+  lazy val postMoveBlocks: Set[BlockPos] = rows.flatMap(_.postMoveBlocks)
 
-  def moveDir = rows.head.moveDir
+  def moveDir: EnumFacing = rows.head.moveDir
 
-  def contains(pos: BlockPos) = rows.exists(_.contains(x, y, z))
+  def contains(pos: BlockPos): Boolean = rows.exists(_.contains(pos))
 
   def push() {
     progress = math.min(1.0, progress + speed)
   }
 
-  def isFinished = progress >= 1.0D
+  def isFinished: Boolean = progress >= 1.0D
 
   def getChunks: Set[ChunkPos] = {
     val c = Set.newBuilder[ChunkPos]
     for (b <- allBlocks)
-      c += new ChunkPos(b.x >> 4, b.z >> 4)
+      c += new ChunkPos(b.getX >> 4, b.getZ >> 4)
     c.result()
   }
 
@@ -301,7 +301,7 @@ class BlockStruct {
     }
   }
 
-  override def equals(obj: scala.Any) = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case that: BlockStruct => id == that.id
     case _ => false
   }
@@ -321,18 +321,18 @@ class BlockStruct {
     progress = in.readFloat()
     speed = in.readFloat()
     val rb = Set.newBuilder[BlockRow]
-    for (i <- 0 until in.readUByte())
-      rb += new BlockRow(WorldLib.unpackCoords(in.readLong()), in.readUByte(), in.readUShort())
+    for (_ <- 0 until in.readUByte())
+      rb += new BlockRow(in.readPos(), in.readUByte().toInt, in.readShort())
     rows = rb.result()
   }
 }
 
 class BlockRow(val pos: BlockPos, val moveDir: EnumFacing, val size: Int) {
-  val allBlocks = 0 to size map { i => pos.offset(moveDir.getOpposite, i) }
-  val preMoveBlocks = allBlocks drop 1
-  val postMoveBlocks = allBlocks dropRight 1
+  val allBlocks: IndexedSeq[BlockPos] = 0 to size map { i => pos.offset(moveDir.getOpposite, i) }
+  val preMoveBlocks: IndexedSeq[BlockPos] = allBlocks drop 1
+  val postMoveBlocks: IndexedSeq[BlockPos] = allBlocks dropRight 1
 
-  def contains(pos: BlockPos) = {
+  def contains(pos: BlockPos): Boolean = {
     import MathLib.{basis, normal, shift}
 
     import math.{max, min}
@@ -353,28 +353,27 @@ class BlockRow(val pos: BlockPos, val moveDir: EnumFacing, val size: Int) {
   }
 
   def doMove(w: World) {
-    if (pos.y < 0 || pos.y >= 256) return
+    if (pos.getY < 0 || pos.getY >= 256) return
 
-    w.removeTileEntity(pos.x, pos.y, pos.z)
-    WorldLib.uncheckedSetBlock(w, pos.x, pos.y, pos.z, Blocks.air, 0) //Remove movement block
+    w.removeTileEntity(pos)
+    WorldLib.uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState) //Remove movement block
 
     for (b <- preMoveBlocks)
-      MovingTileRegistry.move(w, b.x, b.y, b.z, moveDir)
+      MovingTileRegistry.move(w, b, moveDir)
   }
 
-  def postMove(w: World) {
+  def postMove(w: World): Unit =
     for (b <- postMoveBlocks)
-      MovingTileRegistry.postMove(w, b.x, b.y, b.z)
-  }
+      MovingTileRegistry.postMove(w, b)
 
   def endMove(w: World) {}
 
   def cacheChanges(w: World, changes: MSet[BlockPos]) {
     for (i <- 0 to size) {
-      val c = pos.copy.offset(moveDir ^ 1, i)
+      val c = pos.offset(moveDir.getOpposite, i)
       changes += c
-      for (s <- 0 until 6; s1 <- 0 until 6 if s1 != (s ^ 1))
-        changes += c.copy.offset(s).offset(s1)
+      for (s <- EnumFacing.VALUES; s1 <- EnumFacing.VALUES if s1 != s.getOpposite)
+        changes += c.offset(s).offset(s1)
     }
   }
 }

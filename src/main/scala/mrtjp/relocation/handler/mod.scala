@@ -17,7 +17,7 @@ import org.apache.logging.log4j.{LogManager, Logger}
 object RelocationMod {
   RelocationAPI.instance = RelocationAPI_Impl
 
-  final val modID = "ForgeRelocation"
+  final val modID = "forgerelocation"
   final val modName = "ForgeRelocation"
   final val version = "@VERSION@"
   final val buildnumber = "@BUILD_NUMBER@"

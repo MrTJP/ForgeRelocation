@@ -52,7 +52,7 @@ object Utils {
         if (blocks(bc)) {
           bc.offset(dir)
           // FIXME: AccessTransformer?
-          tick.position = bc
+          //          tick.position = bc
         }
       }
 
@@ -65,20 +65,20 @@ object Utils {
 
   def rerenderBlocks(world: World, blocks: Set[BlockPos]) {
     if (world.isRemote) {
-      val mc = Minecraft.getMinecraft
+      //      val mc = Minecraft.getMinecraft
       // FIXME: AccessTransformer?
-      val teList = mc.renderGlobal.setTileEntities.asInstanceOf[JList[TileEntity]]
-      for (pass <- 0 to 1) {
-        for (c <- blocks; te = world.getTileEntity(c)) {
-          if (te != null) pass match {
-            case 0 => teList.remove(te)
-            case 1 => teList.add(te)
-          }
-          mc.renderGlobal.markBlockRangeForRenderUpdate(c, c)
-        }
-        // FIXME: wat?
-        mc.renderGlobal.updateRenderers(mc.getRenderViewEntity, false)
-      }
+      //      val teList = mc.renderGlobal.setTileEntities.asInstanceOf[JList[TileEntity]]
+      //      for (pass <- 0 to 1) {
+      //        for (c <- blocks; te = world.getTileEntity(c)) {
+      //          if (te != null) pass match {
+      //            case 0 => teList.remove(te)
+      //            case 1 => teList.add(te)
+      //          }
+      //          mc.renderGlobal.markBlockRangeForRenderUpdate(c, c)
+      //        }
+      //         FIXME: wat?
+      //        mc.renderGlobal.updateRenderers(mc.getRenderViewEntity, false)
+      //      }
     }
   }
 }

@@ -2,6 +2,7 @@ package mrtjp
 
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.{IWorldEventListener, World}
@@ -20,7 +21,10 @@ object Implicits {
     def getBlock(pos: BlockPos): Option[Block] =
       Option(self.getBlockState(pos)).map(_.getBlock)
 
-    def getBlockMeta(pos: BlockPos) = getBlock(pos).map(_.getMetaFromState(self.getBlockState(pos)))
+    def getBlockMeta(pos: BlockPos): Option[Int] = getBlock(pos).map(_.getMetaFromState(self.getBlockState(pos)))
+
+    def getBlockAndTE(pos: BlockPos): (IBlockState, TileEntity) =
+      (self.getBlockState(pos), self.getTileEntity(pos))
   }
 
   // TODO: Needs to be replaced with just BlockState at some point.

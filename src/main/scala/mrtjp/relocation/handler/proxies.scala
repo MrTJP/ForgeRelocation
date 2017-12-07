@@ -9,6 +9,7 @@ import codechicken.lib.packet.PacketCustom
 import mrtjp.relocation._
 import mrtjp.relocation.api.RelocationAPI.{instance => API}
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class RelocationProxy_server {
   def preinit() {
@@ -49,7 +50,6 @@ class RelocationProxy_server {
   def postinit() {
     PacketCustom.assignHandler(RelocationSPH.channel, RelocationSPH)
 
-    FMLCommonHandler.instance.bus.register(RelocationEventHandler)
     MinecraftForge.EVENT_BUS.register(RelocationEventHandler)
   }
 }
@@ -60,9 +60,7 @@ class RelocationProxy_client extends RelocationProxy_server {
     super.postinit()
     PacketCustom.assignHandler(RelocationCPH.channel, RelocationCPH)
 
-    FMLCommonHandler.instance.bus.register(RelocationClientEventHandler)
     MinecraftForge.EVENT_BUS.register(RelocationClientEventHandler)
-
   }
 }
 
