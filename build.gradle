@@ -23,9 +23,9 @@ compileScala {
 }
 
 minecraft {
-    version = "1.12.2-14.23.0.2501"
+    version = "14.23.3.2678"
     runDir = "run"
-    mappings = "snapshot_20170624"
+    mappings = "snapshot_20171120"
 }
 
 repositories {
@@ -34,16 +34,14 @@ repositories {
 }
 
 dependencies {
-    compile projectOrMvn(":MrTJPCore", "mrtjp:MrTJPCore:1.12.2-+:deobf")
-    compile projectOrMvn(":CodeChickenLib", "codechicken:CodeChickenLib:1.12-+:deobf")
+    deobfCompile "mrtjp:MrTJPCore:${project.mc_version}-${project.tjpcore_version}:universal"
+    deobfCompile "codechicken:CodeChickenLib:${project.mc_version}-${project.ccl_version}:universal"
 
-    runtime "mezz.jei:jei_${project.minecraft.version}:+"
+    runtime "mezz.jei:jei_${project.mc_version}:+"
 
     compile "org.scala-lang:scala-library:2.11.+"
     compile "org.scala-lang:scala-compiler:2.11.+"
 }
-
-def projectOrMvn(String project, String artifact) { findProject(project) ?: artifact }
 
 processResources {
     from(sourceSets.main.resources.srcDirs) {

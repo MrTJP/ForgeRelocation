@@ -14,10 +14,10 @@ import mrtjp.mcframes.handler.MCFramesMod
 import mrtjp.relocation.api.RelocationAPI
 import net.minecraft.block.SoundType
 import net.minecraft.block.material.Material
-import net.minecraft.block.state.IBlockState
+import net.minecraft.block.state.{BlockFaceShape, IBlockState}
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.{EnumFacing, ResourceLocation}
@@ -31,7 +31,8 @@ class BlockMotor extends MultiTileBlock(Material.IRON) {
   setRegistryName(new ResourceLocation(MCFramesMod.modID, "motor"))
   addTile(classOf[TileMotor], 0)
 
-  override def isSideSolid(state: IBlockState, world: IBlockAccess, pos: BlockPos, side: EnumFacing): Boolean = true
+  override def getBlockFaceShape(world: IBlockAccess, state: IBlockState, pos: BlockPos, face: EnumFacing): BlockFaceShape =
+    BlockFaceShape.UNDEFINED
 }
 
 class TileMotor extends MTBlockTile with TTileOrient with IFrame {
