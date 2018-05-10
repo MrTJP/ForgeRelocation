@@ -39,7 +39,7 @@ object MCFramesAPI_Impl extends MCFramesAPI {
   // FIXME
   override def raytraceFrame(x: Double, y: Double, z: Double, mask: Int, start: Vec3d, end: Vec3d) =
     null
-  //      ModelRayTracer.raytraceModel(x, y, z, start, end, RenderFrame.getOrGenerateModel(mask))
+  // ModelRayTracer.raytraceModel(x, y, z, start, end, RenderFrame.getOrGenerateModel(mask))
 }
 
 object StickResolver_Impl extends StickResolver {

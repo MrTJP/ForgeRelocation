@@ -14,7 +14,7 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.block.{Block, SoundType}
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemBlock
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.util.math.{AxisAlignedBB, BlockPos, RayTraceResult, Vec3d}
 import net.minecraft.util.{EnumActionResult, EnumFacing, EnumHand, ResourceLocation}
 import net.minecraft.world.World
@@ -26,6 +26,7 @@ class BlockFrame extends BlockCore(Material.WOOD) with IFrame {
   setSoundType(SoundType.WOOD)
   setCreativeTab(CreativeTabs.TRANSPORTATION)
   setRegistryName(new ResourceLocation(MCFramesMod.modID, "frame"))
+  setUnlocalizedName(s"${MCFramesMod.modID}.frame")
 
   override def getItemBlockClass: Class[ItemBlockFrame] = classOf[ItemBlockFrame]
 
@@ -59,8 +60,9 @@ class ItemBlockFrame(b: Block) extends ItemBlock(b) {
     } else super.onItemUse(player, world, pos, hand, facing, hitX, hitY, hitZ)
   }
 
-  // FIXME: I don't know what this is
-  //  override def func_150936_a(world: World, x: Int, y: Int, z: Int, side: Int, player: EntityPlayer, stack: ItemStack) = true
+  // this was func_150936_a, not sure if this is the correct method
+  override def canPlaceBlockOnSide(worldIn: World, pos: BlockPos, side: EnumFacing, player: EntityPlayer, stack: ItemStack): Boolean =
+    true
 }
 
 //object RenderFrame extends ISimpleBlockRenderingHandler {

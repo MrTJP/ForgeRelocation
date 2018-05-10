@@ -8,19 +8,20 @@ package mrtjp.mcframes
 import mrtjp.Implicits._
 import mrtjp.mcframes.api.{IFrame, IFrameInteraction}
 import net.minecraft.block.Block
-import net.minecraft.util.EnumFacing
+import net.minecraft.block.properties.IProperty
+import net.minecraft.block.state.IBlockState
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.World
 
+import scala.collection.JavaConversions._
 import scala.util.matching.Regex
 
 object StickRegistry {
-  val rKeyVal: Regex = raw"([\w:]+)\s*->\s*(.+)".r
-  val rName: Regex = raw"(.+)".r
-  val rNameMetaM: Regex = raw"(.+)m(\d+)".r
-  val rMod: Regex = raw"mod:(\w+)".r
+  val rKeyVal: Regex = raw"([\w:#=,]+)\s*->\s*(.+)".r
 
-  var latchMap: Map[(Block, Int), Set[(Block, Int)]] = Map().withDefaultValue(Set())
+  var latchMap: Map[BlockStateFilter, Set[BlockStateFilter]] = Map().withDefaultValue(Set())
+  var latchOps: List[(BlockStateFilter, BlockStateFilter) => Boolean] = List() // FIXME this doesn't seem to be used?
   var interactionList: Seq[IFrameInteraction] = Seq()
 
   def parseKV(kv: Seq[String]): Seq[(String, String)] = kv.map {
@@ -28,31 +29,18 @@ object StickRegistry {
     case s => throw new MatchError(s"Illegal [k -> v] pair: $s")
   }
 
-  def parseBlockMeta(b: String): (Block, Int) = b match {
-    case rNameMetaM(name, meta) => Block.getBlockFromName(fixName(name)) -> meta.toInt
-    case rName(name) => Block.getBlockFromName(fixName(name)) -> -1
-    case _ => throw new MatchError(s"Illegal set part: $b")
-  }
-
-  def fixName(name: String): String = name.indexOf(':') match {
-    case -1 => "minecraft:" + name
-    case _ => name
-  }
-
   def parseAndAddLatchSets(kv: Seq[String]): Array[String] = {
-    parseKV(kv).foreach(b => addLatchSet(parseBlockMeta(b._1), parseBlockMeta(b._2)))
+    parseKV(kv).foreach(b => addLatchSet(BlockStateFilter.fromString(b._1), BlockStateFilter.fromString(b._2)))
     latchMap.flatMap { kv =>
-      val (b, i) = kv._1
-      val e1 = Block.REGISTRY.getNameForObject(b) + (if (i != -1) s"m$i" else "")
+      val e1 = kv._1.toString
       kv._2.map { k =>
-        val (b2, i2) = k
-        val e2 = Block.REGISTRY.getNameForObject(b2) + (if (i2 != -1) s"m$i2" else "")
+        val e2 = k.toString
         e1 + " -> " + e2
       }
     }.toArray
   }
 
-  def addLatchSet(b1: (Block, Int), b2: (Block, Int)) {
+  def addLatchSet(b1: BlockStateFilter, b2: BlockStateFilter) {
     latchMap += b1 -> (latchMap(b1) + b2)
   }
 
@@ -60,27 +48,63 @@ object StickRegistry {
     def getFrame(pos: BlockPos): IFrame = {
       val b = w.getBlockState(pos).getBlock
       if (b.isInstanceOf[IFrame]) return b.asInstanceOf[IFrame]
-      val te = w.getTileEntity(pos, classOf[IFrame])
-      if (te.isDefined) return te.get
-      interactionList.find(_.canInteract(w, pos.getX, pos.getY, pos.getZ)).orNull
+
+      w.getTileCap(pos, IFrame.CAPABILITY).foreach(return _)
+
+      interactionList.find(_.canInteract(w, pos)).orNull
     }
 
     val f1 = getFrame(pos)
+    val p2 = pos.offset(side)
+
     if (f1 != null && f1.stickOut(w, pos, side)) {
-      val p2 = pos.offset(side)
       val f2 = getFrame(p2)
       return f2 == null || f2.stickIn(w, p2, side.getOpposite)
     }
 
-    latchSet(w, pos, side)
+    val b1 = w.getBlockState(pos)
+    val b2 = w.getBlockState(p2)
+    latchMap.exists(it => it._1.matches(b1) && it._2.exists(_.matches(b2)))
+  }
+}
+
+case class BlockStateFilter(block: Block, constraints: Map[IProperty[_], Comparable[_]]) {
+  private def getPropValue[T <: Comparable[T]](prop: IProperty[T], value: Comparable[_]): String = prop.getName(value.asInstanceOf[T])
+
+  def matches(state: IBlockState): Boolean =
+    state.getBlock == block &&
+      constraints.forall(pv => state.getValue(pv._1) == pv._2)
+
+  override val toString: String = {
+    var s = block.getRegistryName.toString
+    if (constraints.nonEmpty) {
+      s += "#" + constraints
+        .map(it => it._1.getName + "=" + getPropValue(it._1, it._2))
+        .fold("")((a, b) => if (a.nonEmpty) s"$a,$b" else b)
+    }
+    s
+  }
+}
+
+object BlockStateFilter {
+  def fromString(expr: String): BlockStateFilter = {
+    expr.split("#") match {
+      case Array(blockRL) => BlockStateFilter(Option(Block.REGISTRY.getObject(new ResourceLocation(blockRL))).get, Map())
+      case Array(blockRL, constraintsSpec) =>
+        val block = Option(Block.REGISTRY.getObject(new ResourceLocation(blockRL))).get
+        val constraints = constraintsSpec.split(",")
+          .map(it => it.split("=") match {
+            case Array(key, value) =>
+              val prop = block.getBlockState.getProperty(key)
+              val pvalue = prop.parseValue(value).get
+              (prop, pvalue)
+            case _ => throw new MatchError(s"Illegal key/value pair $it")
+          })
+        BlockStateFilter(block, constraints.toMap)
+      case _ => throw new MatchError(s"Illegal blockstate spec: $expr")
+    }
   }
 
-  def latchSet(w: World, posIn: BlockPos, side: EnumFacing): Boolean = {
-    val pos = posIn.offset(side)
-    val b1 = w.getBlockState(posIn).blockAndMeta
-    val b2 = w.getBlockState(pos).blockAndMeta
-
-    val set = latchMap.getOrElse(b1, latchMap((b1._1, -1)))
-    set.contains(b2) || set.contains((b2._1, -1))
-  }
+  def fromBlockState(state: IBlockState): BlockStateFilter =
+    BlockStateFilter(state.getBlock, state.getProperties.toMap)
 }

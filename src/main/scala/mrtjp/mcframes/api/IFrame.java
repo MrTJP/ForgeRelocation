@@ -5,18 +5,24 @@
  */
 package mrtjp.mcframes.api;
 
-import mrtjp.relocation.api.Relocator;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityInject;
+
+import mrtjp.relocation.api.Relocator;
 
 /**
- * Interface that can be implemented on Tile Entities or Blocks that wish to
+ * Interface that can be implemented on Blocks or as a capability that wish to
  * act as frames, which are the blocks that stick together and form a
  * moving structure when moved through the {@link Relocator}. No other action besides
  * implementation of this interface is needed for the block to function.
  */
 public interface IFrame {
+    @CapabilityInject(IFrame.class)
+    Capability<IFrame> CAPABILITY = null;
+
     /**
      * Used to check if this frame block is allowed to grab
      * a block on the given side.

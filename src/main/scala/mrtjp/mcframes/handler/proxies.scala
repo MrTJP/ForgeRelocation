@@ -5,12 +5,17 @@
  */
 package mrtjp.mcframes.handler
 
-import java.lang.{Character => JC}
+import java.util.concurrent.Callable
 
 import mrtjp.mcframes._
+import mrtjp.mcframes.api.IFrame
 import mrtjp.mcframes.handler.MCFramesMod._
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemBlock}
+import net.minecraft.nbt.NBTBase
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.capabilities.Capability.IStorage
+import net.minecraftforge.common.capabilities.{Capability, CapabilityManager}
 import net.minecraftforge.event.RegistryEvent.Register
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
@@ -22,7 +27,13 @@ class MCFramesProxy_server {
   }
 
   def init() {
-    MCFramesRecipes.initRecipes()
+    // noinspection ConvertExpressionToSAM
+    CapabilityManager.INSTANCE.register(classOf[IFrame], new IStorage[IFrame] {
+      override def writeNBT(capability: Capability[IFrame], instance: IFrame, side: EnumFacing): NBTBase = null
+      override def readNBT(capability: Capability[IFrame], instance: IFrame, side: EnumFacing, nbt: NBTBase): Unit = Unit
+    }, new Callable[IFrame] {
+      override def call(): IFrame = null
+    })
   }
 
   def postinit() {}
@@ -51,17 +62,5 @@ class MCFramesProxy_client extends MCFramesProxy_server {
     //
     //    RenderFrame.renderID = RenderingRegistry.getNextAvailableRenderId
     //    RenderingRegistry.registerBlockHandler(RenderFrame)
-  }
-}
-
-object MCFramesRecipes {
-  def initRecipes() {
-    //Frame
-    // FIXME
-    //        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(blockFrame, 8),
-    //            "sls","lsl","sls",
-    //            's':JC, Items.stick,
-    //            'l':JC, "logWood"
-    //        ))
   }
 }

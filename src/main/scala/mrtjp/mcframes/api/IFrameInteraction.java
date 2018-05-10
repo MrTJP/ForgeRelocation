@@ -6,6 +6,8 @@
 package mrtjp.mcframes.api;
 
 import mrtjp.relocation.api.RelocationAPI;
+
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -20,11 +22,9 @@ public interface IFrameInteraction extends IFrame {
      * coordinates.
      *
      * @param w The world.
-     * @param x The x coordinate.
-     * @param y The y coordinate.
-     * @param z The z coordinate.
+     * @param pos The coordinates.
      * @return True if this interaction is valid for the given
      * location.
      */
-    boolean canInteract(World w, int x, int y, int z);
+    boolean canInteract(World w, BlockPos pos);
 }

@@ -7,11 +7,11 @@ package mrtjp.mcframes.handler
 
 import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.mcframes.api.MCFramesAPI
-import mrtjp.mcframes.{BlockFrame, BlockMotor, ItemBlockFrame, StickRegistry}
+import mrtjp.mcframes.{BlockFrame, BlockMotor, StickRegistry}
 import net.minecraft.client.gui.GuiScreen
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.{Mod, SidedProxy}
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
+import net.minecraftforge.fml.common.{Mod, SidedProxy}
 
 @Mod(modid = MCFramesMod.modID, useMetadata = true, modLanguage = "scala", guiFactory = "mrtjp.mcframes.handler.GuiConfigFactory")
 object MCFramesMod {
@@ -49,10 +49,7 @@ object MCFramesMod {
 class MCFramesConfigGui(parent: GuiScreen) extends SpecialConfigGui(parent, "MCFrames", MCFramesConfig.config)
 
 class GuiConfigFactory extends TModGuiFactory {
-  // FIXME: Gui Handler
-  //    override def mainConfigGuiClass() = classOf[MCFramesConfigGui]
-  override def createConfigGui(parentScreen: GuiScreen): GuiScreen = ???
-  override def hasConfigGui: Boolean = ???
+  override def createConfigGui(parentScreen: GuiScreen): GuiScreen = new MCFramesConfigGui(parentScreen)
 }
 
 object MCFramesConfig extends ModConfig("MCFrames") {
@@ -76,7 +73,7 @@ object MCFramesConfig extends ModConfig("MCFrames") {
     s += "Sets are defined using the syntax of key -> value. \n"
     s += "Possible keys and values:\n"
     s += "    '<modID>:<blockname>' - to assign block from a mod for every meta. \n"
-    s += "    '<modID>:<blockname>m<meta>' - to assign block from mod for specific meta. \n"
+    s += "    '<modID>:<blockname>#<property1>=<value>[,…]' - to assign block from mod with only the given properties matching. \n"
     s
   }
 }

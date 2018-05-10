@@ -28,9 +28,7 @@ public interface IFramePlacement {
      * @param item   The itemstack of the frame block.
      * @param player The player who is placing the block.
      * @param world  The world the block is being placed in.
-     * @param x      The x coordinate that the block is being placed in.
-     * @param y      The y coordinate that the block is being placed in.
-     * @param z      The z coordinate that the block is being placed in.
+     * @param pos    The coordinates that the block is being placed in.
      * @param side   The side the player clicked on
      * @param hit    The exact hit position of the click.
      * @return True if something happened. This will subsequently block the actual placement of the block.

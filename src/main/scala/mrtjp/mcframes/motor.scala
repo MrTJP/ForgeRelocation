@@ -22,6 +22,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.{IBlockAccess, World}
+import net.minecraftforge.common.capabilities.Capability
 
 class BlockMotor extends MultiTileBlock(Material.IRON) {
   setHardness(5f)
@@ -29,6 +30,7 @@ class BlockMotor extends MultiTileBlock(Material.IRON) {
   setSoundType(SoundType.METAL)
   setCreativeTab(CreativeTabs.TRANSPORTATION)
   setRegistryName(new ResourceLocation(MCFramesMod.modID, "motor"))
+  setUnlocalizedName(s"${MCFramesMod.modID}.motor")
   addTile(classOf[TileMotor], 0)
 
   override def getBlockFaceShape(world: IBlockAccess, state: IBlockState, pos: BlockPos, face: EnumFacing): BlockFaceShape =
@@ -120,6 +122,16 @@ class TileMotor extends MTBlockTile with TTileOrient with IFrame {
         r.pop()
       }
     }
+  }
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = capability match {
+    case IFrame.CAPABILITY => true
+    case _ => super.hasCapability(capability, facing)
+  }
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = capability match {
+    case IFrame.CAPABILITY => this.asInstanceOf[T]
+    case _ => super.getCapability(capability, facing)
   }
 }
 

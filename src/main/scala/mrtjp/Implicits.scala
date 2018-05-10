@@ -6,30 +6,27 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.{IWorldEventListener, World}
+import net.minecraftforge.common.capabilities.Capability
 
 import scala.language.implicitConversions
 
 object Implicits {
-
   implicit class WorldExt(self: World) {
-    def getTileEntity[T](pos: BlockPos, clazz: Class[T]): Option[T] =
+    def getTileCap[T](pos: BlockPos, cap: Capability[T]): Option[T] =
       self.getTileEntity(pos) match {
-        case t: T => Some(t)
+        case t: TileEntity =>
+          if (t.hasCapability(cap, null)) Some(t.getCapability(cap, null))
+          else None
         case _ => None
       }
 
     def getBlock(pos: BlockPos): Option[Block] =
       Option(self.getBlockState(pos)).map(_.getBlock)
 
-    def getBlockMeta(pos: BlockPos): Option[Int] = getBlock(pos).map(_.getMetaFromState(self.getBlockState(pos)))
+//    def getBlockMeta(pos: BlockPos): Option[Int] = getBlock(pos).map(_.getMetaFromState(self.getBlockState(pos)))
 
     def getBlockAndTE(pos: BlockPos): (IBlockState, TileEntity) =
       (self.getBlockState(pos), self.getTileEntity(pos))
-  }
-
-  // TODO: Needs to be replaced with just BlockState at some point.
-  implicit class IBlockStateExt(self: IBlockState) {
-    def blockAndMeta: (Block, Int) = (self.getBlock, self.getBlock.getMetaFromState(self))
   }
 
   implicit class IWorldEventListenerExt(self: IWorldEventListener) {
