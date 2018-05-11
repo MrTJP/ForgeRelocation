@@ -11,9 +11,12 @@ import mrtjp.mcframes._
 import mrtjp.mcframes.api.IFrame
 import mrtjp.mcframes.handler.MCFramesMod._
 import net.minecraft.block.Block
+import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.item.{Item, ItemBlock}
 import net.minecraft.nbt.NBTBase
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.client.event.ModelRegistryEvent
+import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.capabilities.Capability.IStorage
 import net.minecraftforge.common.capabilities.{Capability, CapabilityManager}
 import net.minecraftforge.event.RegistryEvent.Register
@@ -24,6 +27,8 @@ class MCFramesProxy_server {
   def preinit() {
     blockMotor = new BlockMotor
     blockFrame = new BlockFrame
+
+    ModelLoader.setCustomStateMapper(blockMotor, BlockMotor.StateMapper)
   }
 
   def init() {
@@ -62,5 +67,11 @@ class MCFramesProxy_client extends MCFramesProxy_server {
     //
     //    RenderFrame.renderID = RenderingRegistry.getNextAvailableRenderId
     //    RenderingRegistry.registerBlockHandler(RenderFrame)
+  }
+
+  @SubscribeEvent
+  def registerModels(e: ModelRegistryEvent) {
+    ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(MCFramesMod.blockMotor), 0,
+      new ModelResourceLocation(MCFramesMod.blockMotor.getRegistryName, "inventory"))
   }
 }

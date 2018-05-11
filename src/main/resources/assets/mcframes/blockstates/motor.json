@@ -1,0 +1,41 @@
+{
+  "defaults": {
+    "model": "mcframes:motor",
+    "textures": {
+      "particle": "#side",
+      "top": "mcframes:blocks/motor/top",
+      "bottom": "mcframes:blocks/motor/bottom",
+      "side": "mcframes:blocks/motor/side",
+      "sidew": "mcframes:blocks/motor/sidew",
+      "sidee": "mcframes:blocks/motor/sidee"
+    }
+  },
+  "forge_marker": 1,
+  "variants": {
+    "facing=down,rotation=0":  [ { "transform": { "rotation": [ { "x": 90  }               ] } } ],
+    "facing=down,rotation=1":  [ { "transform": { "rotation": [ { "x": 90  }, { "z": 90  } ] } } ],
+    "facing=down,rotation=2":  [ { "transform": { "rotation": [ { "x": 90  }, { "z": 180 } ] } } ],
+    "facing=down,rotation=3":  [ { "transform": { "rotation": [ { "x": 90  }, { "z": 270 } ] } } ],
+    "facing=up,rotation=0":    [ { "transform": { "rotation": [ { "x": 270 }               ] } } ],
+    "facing=up,rotation=1":    [ { "transform": { "rotation": [ { "x": 270 }, { "z": 90  } ] } } ],
+    "facing=up,rotation=2":    [ { "transform": { "rotation": [ { "x": 270 }, { "z": 180 } ] } } ],
+    "facing=up,rotation=3":    [ { "transform": { "rotation": [ { "x": 270 }, { "z": 270 } ] } } ],
+    "facing=north,rotation=0": [ { "transform": { "rotation": [ { "y": 0   }               ] } } ],
+    "facing=north,rotation=1": [ { "transform": { "rotation": [ { "y": 0   }, { "z": 90  } ] } } ],
+    "facing=north,rotation=2": [ { "transform": { "rotation": [ { "y": 0   }, { "z": 180 } ] } } ],
+    "facing=north,rotation=3": [ { "transform": { "rotation": [ { "y": 0   }, { "z": 270 } ] } } ],
+    "facing=south,rotation=0": [ { "transform": { "rotation": [ { "y": 180 }               ] } } ],
+    "facing=south,rotation=1": [ { "transform": { "rotation": [ { "y": 180 }, { "z": 90  } ] } } ],
+    "facing=south,rotation=2": [ { "transform": { "rotation": [ { "y": 180 }, { "z": 180 } ] } } ],
+    "facing=south,rotation=3": [ { "transform": { "rotation": [ { "y": 180 }, { "z": 270 } ] } } ],
+    "facing=west,rotation=0":  [ { "transform": { "rotation": [ { "y": 270 }               ] } } ],
+    "facing=west,rotation=1":  [ { "transform": { "rotation": [ { "y": 270 }, { "z": 90  } ] } } ],
+    "facing=west,rotation=2":  [ { "transform": { "rotation": [ { "y": 270 }, { "z": 180 } ] } } ],
+    "facing=west,rotation=3":  [ { "transform": { "rotation": [ { "y": 270 }, { "z": 270 } ] } } ],
+    "facing=east,rotation=0":  [ { "transform": { "rotation": [ { "y": 90  }               ] } } ],
+    "facing=east,rotation=1":  [ { "transform": { "rotation": [ { "y": 90  }, { "z": 90  } ] } } ],
+    "facing=east,rotation=2":  [ { "transform": { "rotation": [ { "y": 90  }, { "z": 180 } ] } } ],
+    "facing=east,rotation=3":  [ { "transform": { "rotation": [ { "y": 90  }, { "z": 270 } ] } } ],
+    "inventory": { "transform": "forge:default-block" }
+  }
+}

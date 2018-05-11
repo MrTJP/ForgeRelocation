@@ -12,9 +12,11 @@ import mrtjp.core.block._
 import mrtjp.mcframes.api.{IFrame, MCFramesAPI}
 import mrtjp.mcframes.handler.MCFramesMod
 import mrtjp.relocation.api.RelocationAPI
-import net.minecraft.block.SoundType
 import net.minecraft.block.material.Material
-import net.minecraft.block.state.{BlockFaceShape, IBlockState}
+import net.minecraft.block.properties.PropertyInteger
+import net.minecraft.block.state.{BlockFaceShape, BlockStateContainer, IBlockState}
+import net.minecraft.block.{BlockDirectional, SoundType}
+import net.minecraft.client.renderer.block.statemap.StateMap
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -33,8 +35,21 @@ class BlockMotor extends MultiTileBlock(Material.IRON) {
   setUnlocalizedName(s"${MCFramesMod.modID}.motor")
   addTile(classOf[TileMotor], 0)
 
+  override def createBlockState(): BlockStateContainer =
+    new BlockStateContainer(this, MultiTileBlock.TILE_INDEX, BlockDirectional.FACING, BlockMotor.Rotation)
+
+  override def getActualState(state: IBlockState, world: IBlockAccess, pos: BlockPos): IBlockState = super.getActualState(state, world, pos)
+    .withProperty(BlockDirectional.FACING, int2facing(world.getTileEntity(pos).asInstanceOf[TileMotor].side))
+    .withProperty(BlockMotor.Rotation, world.getTileEntity(pos).asInstanceOf[TileMotor].rotation.asInstanceOf[Integer])
+
   override def getBlockFaceShape(world: IBlockAccess, state: IBlockState, pos: BlockPos, face: EnumFacing): BlockFaceShape =
     BlockFaceShape.UNDEFINED
+}
+
+object BlockMotor {
+  val StateMapper: StateMap = new StateMap.Builder().ignore(MultiTileBlock.TILE_INDEX).build()
+
+  val Rotation: PropertyInteger = PropertyInteger.create("rotation", 0, 3)
 }
 
 class TileMotor extends MTBlockTile with TTileOrient with IFrame {
