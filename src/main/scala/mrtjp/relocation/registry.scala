@@ -97,9 +97,9 @@ class CoordPushTileMover extends ITileMover {
     val pos = posIn.offset(side)
     if (te != null) {
       te.invalidate()
-      uncheckedRemoveTileEntity(w, pos)
+      uncheckedRemoveTileEntity(w, posIn)
     }
-    uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
+    uncheckedSetBlock(w, posIn, Blocks.AIR.getDefaultState)
     uncheckedSetBlock(w, pos, state)
     if (te != null) {
       te.setPos(pos)
@@ -124,11 +124,11 @@ class SaveLoadTileMover extends ITileMover {
       tag.setInteger("y", pos.getY)
       tag.setInteger("z", pos.getZ)
       te.onChunkUnload()
-      w.removeTileEntity(pos)
+      w.removeTileEntity(posIn)
       tag
     }
     else null
-    uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
+    uncheckedSetBlock(w, posIn, Blocks.AIR.getDefaultState)
     uncheckedSetBlock(w, pos, state)
     if (tag != null) {
       TileEntity.create(w, tag) match {
