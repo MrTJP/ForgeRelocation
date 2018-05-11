@@ -52,10 +52,7 @@ object RelocationMod {
 class RelocationConfigGui(parent: GuiScreen) extends SpecialConfigGui(parent, "ForgeRelocation", RelocationConfig.config)
 
 class GuiConfigFactory extends TModGuiFactory {
-  // FIXME: Gui Handler
-  //  override def mainConfigGuiClass() = classOf[RelocationConfigGui]
-  override def createConfigGui(parentScreen: GuiScreen): GuiScreen = ???
-  override def hasConfigGui: Boolean = ???
+  override def createConfigGui(parentScreen: GuiScreen): GuiScreen = new RelocationConfigGui(parentScreen)
 }
 
 object RelocationConfig extends ModConfig("ForgeRelocation") {
@@ -75,15 +72,18 @@ object RelocationConfig extends ModConfig("ForgeRelocation") {
   }
 
   def buildMoverDesc: String = {
-    var s = "Used to configure which registered Tile Mover is used for a block. Key-Value pairs are defined using \n" +
-      "the syntax key -> value. \n"
-    s += "Most blocks are configurable, but some mods may have opted to lock which handlers can be used for its \n" +
-      "blocks.\n"
-    s += "Possible keys: \n"
-    s += "    'default' - to assign default handler. \n"
-    s += "    'mod:<modID>' - to assign every block from a mod. \n"
-    s += "    '<modID>:<blockname>' - to assign block from a mod for every meta. \n"
-    s += "    '<modID>:<blockname>m<meta>' - to assign block from mod for specific meta. \n"
+
+    var s =
+      """Used to configure which registered Tile Mover is used for a block. Key-Value pairs are defined using
+        |the syntax key -> value.
+        |Most blocks are configurable, but some mods may have opted to lock which handlers can be used for its
+        |blocks.
+        |Possible keys:
+        |    'default' - to assign default handler.
+        |    mod:<modID>' - to assign every block from a mod.
+        |    <modID>:<blockname>' - to assign block from a mod for every meta.
+        |    <modID>:<blockname>m<meta>' - to assign block from mod for specific meta.
+      """.stripMargin
 
     s += "\nAvailable tile movers:\n"
     for ((k, v) <- MovingTileRegistry.moverDescMap)

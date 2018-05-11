@@ -6,7 +6,7 @@
 package mrtjp.relocation.handler
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
-import java.util.{LinkedList => JLinkedList, List => JList}
+import java.util.{LinkedList => JLinkedList}
 
 import codechicken.lib.data.MCDataOutputWrapper
 import codechicken.lib.packet.ICustomPacketHandler.{IClientPacketHandler, IServerPacketHandler}
@@ -17,7 +17,7 @@ import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.network.play.server.SPacketDisconnect
 import net.minecraft.network.play.{INetHandlerPlayClient, INetHandlerPlayServer}
 import net.minecraft.util.math.ChunkPos
-import net.minecraft.util.text.ITextComponent
+import net.minecraft.util.text.TextComponentString
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 
@@ -41,9 +41,7 @@ object RelocationCPH extends RelocationPH with IClientPacketHandler {
     }
     catch {
       case e: RuntimeException if e.getMessage.startsWith("DC: ") =>
-        // FIXME: No idea if this is correct
-        netHandler.handleDisconnect(new SPacketDisconnect(ITextComponent.Serializer.jsonToComponent(
-          "{\"text\":\"%s\"}".format(e.getMessage.substring(4)))))
+        netHandler.handleDisconnect(new SPacketDisconnect(new TextComponentString(e.getMessage.substring(4))))
     }
   }
 

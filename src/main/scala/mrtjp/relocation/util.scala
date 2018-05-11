@@ -45,7 +45,6 @@ object Utils {
         val bc = tick.position
         if (blocks(bc)) {
           bc.offset(dir)
-          // FIXME: AccessTransformer?
           tick.position = bc
         }
       }
