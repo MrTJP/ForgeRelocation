@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTBase
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.client.event.ModelRegistryEvent
 import net.minecraftforge.client.model.ModelLoader
+import net.minecraftforge.client.model.obj.OBJLoader
 import net.minecraftforge.common.capabilities.Capability.IStorage
 import net.minecraftforge.common.capabilities.{Capability, CapabilityManager}
 import net.minecraftforge.event.RegistryEvent.Register
@@ -62,16 +63,14 @@ class MCFramesProxy_client extends MCFramesProxy_server {
   override def preinit() {
     super.preinit()
 
-    // FIXME
-    //    TileRenderRegistry.setRenderer(MCFramesMod.blockMotor, 0, RenderMotor)
-    //
-    //    RenderFrame.renderID = RenderingRegistry.getNextAvailableRenderId
-    //    RenderingRegistry.registerBlockHandler(RenderFrame)
+    OBJLoader.INSTANCE.addDomain(MCFramesMod.modID)
   }
 
   @SubscribeEvent
   def registerModels(e: ModelRegistryEvent) {
     ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(MCFramesMod.blockMotor), 0,
       new ModelResourceLocation(MCFramesMod.blockMotor.getRegistryName, "inventory"))
+    ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(MCFramesMod.blockFrame), 0,
+      new ModelResourceLocation(MCFramesMod.blockFrame.getRegistryName, "inventory"))
   }
 }

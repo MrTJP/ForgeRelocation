@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "model": "mcframes:frame.obj",
+    "textures": {
+      "particle": "##frame",
+      "#frame": "mcframes:blocks/frame"
+    }
+  },
+  "forge_marker": 1,
+  "variants": {
+    "normal": [{}],
+    "inventory": { "transform": "forge:default-block" }
+  }
+}
