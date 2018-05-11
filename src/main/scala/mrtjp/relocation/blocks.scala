@@ -12,8 +12,9 @@ import mrtjp.core.block.{MTBlockTile, MultiTileBlock}
 import mrtjp.relocation.handler.RelocationMod
 import net.minecraft.block.SoundType
 import net.minecraft.block.material.Material
+import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.{Entity, MoverType}
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.{EnumBlockRenderType, ResourceLocation}
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.world.World
 
@@ -25,6 +26,8 @@ class BlockMovingRow extends MultiTileBlock(Material.IRON) {
   setCreativeTab(null)
   setRegistryName(new ResourceLocation(RelocationMod.modID, "blockmovingrow"))
   addTile(classOf[TileMovingRow], 0)
+
+  override def getRenderType(state: IBlockState): EnumBlockRenderType = EnumBlockRenderType.INVISIBLE
 }
 
 object TileMovingRow {

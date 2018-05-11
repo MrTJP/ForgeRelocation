@@ -43,7 +43,7 @@ class BlockMotor extends MultiTileBlock(Material.IRON) {
     .withProperty(BlockMotor.Rotation, world.getTileEntity(pos).asInstanceOf[TileMotor].rotation.asInstanceOf[Integer])
 
   override def getBlockFaceShape(world: IBlockAccess, state: IBlockState, pos: BlockPos, face: EnumFacing): BlockFaceShape =
-    BlockFaceShape.UNDEFINED
+    BlockFaceShape.SOLID
 }
 
 object BlockMotor {

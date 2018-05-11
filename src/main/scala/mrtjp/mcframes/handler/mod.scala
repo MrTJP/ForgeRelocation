@@ -65,15 +65,14 @@ object MCFramesConfig extends ModConfig("MCFrames") {
     setMap = sets.put("latch registry", StickRegistry.parseAndAddLatchSets(setMap), force = true)
   }
 
-  def buildLatchSetsDesc: String = {
-    var s = "Used to define which pairs of blocks will be stuck together. \n"
-    s += "Latched sets will always move in pairs, even if only one of them are actually connected to a block. \n"
-    s += "'block1 -> block2' means that if block1 is moved, any block2 connected to it will also move. \n"
-    s += "However, moving block2 does not move block1. To do that, you must also register block2 -> block1. \n"
-    s += "Sets are defined using the syntax of key -> value. \n"
-    s += "Possible keys and values:\n"
-    s += "    '<modID>:<blockname>' - to assign block from a mod for every meta. \n"
-    s += "    '<modID>:<blockname>#<property1>=<value>[,…]' - to assign block from mod with only the given properties matching. \n"
-    s
-  }
+  def buildLatchSetsDesc: String =
+    """Used to define which pairs of blocks will be stuck together.
+      |Latched sets will always move in pairs, even if only one of them are actually connected to a block.
+      |'block1 -> block2' means that if block1 is moved, any block2 connected to it will also move.
+      |However, moving block2 does not move block1. To do that, you must also register block2 -> block1.
+      |Sets are defined using the syntax of key -> value.
+      |Possible keys and values:
+      |    '<modID>:<blockname>' - to assign block from a mod for every meta.
+      |    '<modID>:<blockname>#<property>=<value>[,<property>=<value>[,…]]' - to assign block from mod with only the given properties matching.
+    """.stripMargin
 }

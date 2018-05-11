@@ -10,9 +10,9 @@ import mrtjp.relocation._
 import mrtjp.relocation.api.RelocationAPI.{instance => API}
 import mrtjp.relocation.handler.RelocationMod.blockMovingRow
 import net.minecraft.block.Block
+import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.RegistryEvent.Register
-import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
@@ -71,5 +71,12 @@ class RelocationProxy_client extends RelocationProxy_server {
     PacketCustom.assignHandler(RelocationCPH.channel, RelocationCPH)
 
     MinecraftForge.EVENT_BUS.register(RelocationClientEventHandler)
+  }
+
+  @SubscribeEvent
+  def onRenderWorld(e: RenderWorldLastEvent): Unit = {
+    MovingRenderer.onPreRenderTick(e.getPartialTicks)
+    MovingRenderer.onRenderWorldEvent()
+    MovingRenderer.onPostRenderTick()
   }
 }

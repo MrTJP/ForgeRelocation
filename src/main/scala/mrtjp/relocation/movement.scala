@@ -337,8 +337,8 @@ class BlockRow(val pos: BlockPos, val moveDir: EnumFacing, val size: Int) {
 
     import math.{max, min}
 
-    if (normal(pos, moveDir.getIndex) == normal(pos, moveDir.getIndex)) {
-      val b1 = basis(pos, moveDir.getIndex)
+    if (normal(this.pos, moveDir.getIndex) == normal(pos, moveDir.getIndex)) {
+      val b1 = basis(this.pos, moveDir.getIndex)
       val b2 = b1 + size * shift(moveDir.getOpposite.getIndex)
       min(b1, b2) to max(b1, b2) contains basis(pos, moveDir.getOpposite.getIndex)
     }

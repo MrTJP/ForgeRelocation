@@ -42,32 +42,43 @@ class Transformer extends IClassTransformer {
   def transformBlockRender(m: MethodNode) {
     val old = m.instructions.toArray.collectFirst { case i: MethodInsnNode => i }.get
     val list = new InsnList
-    list.add(new VarInsnNode(ILOAD, 2))
-    list.add(new VarInsnNode(ILOAD, 3))
-    list.add(new VarInsnNode(ILOAD, 4))
+    list.add(new VarInsnNode(ALOAD, 2))
     list.add(new MethodInsnNode(INVOKESTATIC, "mrtjp/relocation/ASMHacks",
-      "getRenderType", "(Lnet/minecraft/block/Block;III)I", false))
+      "getRenderType", "(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/EnumBlockRenderType;", false))
     m.instructions.insert(old, list)
     m.instructions.remove(old)
   }
 
   def transformTERender(m: MethodNode) {
-    val old = m.instructions.toArray.collect { case i: MethodInsnNode => i }.last
-    m.instructions.insert(old, new InsnNode(POP))
-    m.instructions.insert(old, new MethodInsnNode(INVOKESTATIC,
-      "mrtjp/relocation/ASMHacks", "renderTileEntityAt", old.desc, false))
-    m.instructions.remove(old)
+    val insns = new InsnList
+    List(
+      new VarInsnNode(ALOAD, 1),
+      new VarInsnNode(DLOAD, 2),
+      new VarInsnNode(DLOAD, 4),
+      new VarInsnNode(DLOAD, 6),
+      new VarInsnNode(FLOAD, 8),
+      new MethodInsnNode(INVOKESTATIC, "mrtjp/relocation/ASMHacks", "getTERenderPosition", "(Lnet/minecraft/tileentity/TileEntity;DDDF)Lcodechicken/lib/vec/Vector3;", false),
+      new InsnNode(DUP),
+      new InsnNode(DUP),
+      new FieldInsnNode(GETFIELD, "codechicken/lib/vec/Vector3", "x", "D"),
+      new VarInsnNode(DSTORE, 2),
+      new FieldInsnNode(GETFIELD, "codechicken/lib/vec/Vector3", "y", "D"),
+      new VarInsnNode(DSTORE, 4),
+      new FieldInsnNode(GETFIELD, "codechicken/lib/vec/Vector3", "z", "D"),
+      new VarInsnNode(DSTORE, 6)
+    ).foreach(insns.add)
+    m.instructions.insert(insns)
   }
 
   val classData = Map[String, (MethodChecker, MethodChecker, InsTransformer)](
-    "net.minecraft.client.renderer.RenderBlocks" -> ((
-      (_: String, m: MethodNode) => m.name == "renderBlockByRenderType",
-      (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_147805_b",
+    "net.minecraft.client.renderer.BlockRendererDispatcher" -> ((
+      (_: String, m: MethodNode) => m.name == "renderBlock",
+      (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_175018_a",
       transformBlockRender
     )),
     "net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher" -> ((
-      (_: String, m: MethodNode) => m.name == "renderTileEntity",
-      (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_147544_a",
+      (_: String, m: MethodNode) => m.name == "render" && m.desc == "(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V",
+      (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_192854_a",
       transformTERender
     ))
   )
@@ -83,7 +94,7 @@ class Transformer extends IClassTransformer {
       val reader = new ClassReader(data)
       reader.accept(node, 0)
 
-      for (m@(_m: MethodNode) <- node.methods)
+      for (m <- node.methods)
         if ((deobfEnv && ch1(name, m)) || (!deobfEnv && ch2(name, m))) {
           RelocationMod.log.info(s"$name $tName ${m.name} ${m.desc}")
           tr(m)
