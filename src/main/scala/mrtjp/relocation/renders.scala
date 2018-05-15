@@ -27,8 +27,8 @@ object MovingRenderer {
 
   private var oldWorld: World = _
   private var frame = 0.0f
-  private var renderBlocks: BlockRendererDispatcher = null
-  private var movingWorld: MovingWorld = null
+  private var renderBlocks: BlockRendererDispatcher = _
+  private var movingWorld: MovingWorld = _
 
   private def mc = Minecraft.getMinecraft
   private def world = mc.world
