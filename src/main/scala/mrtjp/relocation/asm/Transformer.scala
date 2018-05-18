@@ -39,15 +39,15 @@ class Transformer extends IClassTransformer {
   lazy val blockClass: String = mapper.unmap("net/minecraft/block/Block")
   lazy val teClass: String = mapper.unmap("net/minecraft/tileentity/TileEntity")
 
-  def transformBlockRender(m: MethodNode) {
-    val old = m.instructions.toArray.collectFirst { case i: MethodInsnNode => i }.get
-    val list = new InsnList
-    list.add(new VarInsnNode(ALOAD, 2))
-    list.add(new MethodInsnNode(INVOKESTATIC, "mrtjp/relocation/ASMHacks",
-      "getRenderType", "(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/EnumBlockRenderType;", false))
-    m.instructions.insert(old, list)
-    m.instructions.remove(old)
-  }
+//  def transformBlockRender(m: MethodNode) {
+//    val old = m.instructions.toArray.collectFirst { case i: MethodInsnNode => i }.get
+//    val list = new InsnList
+//    list.add(new VarInsnNode(ALOAD, 2))
+//    list.add(new MethodInsnNode(INVOKESTATIC, "mrtjp/relocation/ASMHacks",
+//      "getRenderType", "(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/EnumBlockRenderType;", false))
+//    m.instructions.insert(old, list)
+//    m.instructions.remove(old)
+//  }
 
   def transformTERender(m: MethodNode) {
     val insns = new InsnList
@@ -71,11 +71,11 @@ class Transformer extends IClassTransformer {
   }
 
   val classData = Map[String, (MethodChecker, MethodChecker, InsTransformer)](
-    "net.minecraft.client.renderer.BlockRendererDispatcher" -> ((
-      (_: String, m: MethodNode) => m.name == "renderBlock",
-      (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_175018_a",
-      transformBlockRender
-    )),
+//    "net.minecraft.client.renderer.BlockRendererDispatcher" -> ((
+//      (_: String, m: MethodNode) => m.name == "renderBlock",
+//      (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_175018_a",
+//      transformBlockRender
+//    )),
     "net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher" -> ((
       (_: String, m: MethodNode) => m.name == "render" && m.desc == "(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V",
       (n: String, m: MethodNode) => mapper.mapMethodName(n, m.name, m.desc) == "func_192854_a",

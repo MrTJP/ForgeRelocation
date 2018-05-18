@@ -43,9 +43,4 @@ object ASMHacks {
     }
     vec
   }
-
-  @SideOnly(Side.CLIENT)
-  def getRenderType(state: IBlockState, pos: BlockPos): EnumBlockRenderType =
-    if (MovingRenderer.renderHack && MovementManager2.isMoving(Minecraft.getMinecraft.world, pos)) EnumBlockRenderType.INVISIBLE
-    else state.getRenderType
 }
