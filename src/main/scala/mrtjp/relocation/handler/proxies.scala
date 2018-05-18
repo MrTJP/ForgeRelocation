@@ -9,16 +9,19 @@ import codechicken.lib.packet.PacketCustom
 import mrtjp.relocation._
 import mrtjp.relocation.api.RelocationAPI.{instance => API}
 import mrtjp.relocation.handler.RelocationMod.blockMovingRow
-import net.minecraft.block.Block
-import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.RegistryEvent.Register
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.registry.ForgeRegistries
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class RelocationProxy_server {
   def preinit() {
+    /** Initialization **/
     blockMovingRow = new BlockMovingRow
+
+    /** Registration **/
+    ForgeRegistries.BLOCKS.register(blockMovingRow.setRegistryName("blockMovingRow"))
+
+    blockMovingRow.addTile(classOf[TileMovingRow], 0)
 
     API.registerTileMover("saveload",
       "Saves the tile and then reloads it in the next position. Reliable but CPU intensive.",
@@ -57,26 +60,15 @@ class RelocationProxy_server {
 
     MinecraftForge.EVENT_BUS.register(RelocationEventHandler)
   }
-
-  @SubscribeEvent
-  def registerBlocks(e: Register[Block]): Unit = {
-    e.getRegistry.registerAll(blockMovingRow)
-  }
 }
 
 class RelocationProxy_client extends RelocationProxy_server {
   @SideOnly(Side.CLIENT)
   override def postinit() {
     super.postinit()
-    PacketCustom.assignHandler(RelocationCPH.channel, RelocationCPH)
-
     MinecraftForge.EVENT_BUS.register(RelocationClientEventHandler)
-  }
-
-  @SubscribeEvent
-  def onRenderWorld(e: RenderWorldLastEvent): Unit = {
-    MovingRenderer.onPreRenderTick(e.getPartialTicks)
-    MovingRenderer.onRenderWorldEvent()
-    MovingRenderer.onPostRenderTick()
+    PacketCustom.assignHandler(RelocationCPH.channel, RelocationCPH)
   }
 }
+
+object RelocationProxy extends RelocationProxy_client

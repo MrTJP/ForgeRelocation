@@ -25,24 +25,20 @@ object MCFramesMod {
   var blockFrame: BlockFrame = _
   var blockMotor: BlockMotor = _
 
-  @SidedProxy(clientSide = "mrtjp.mcframes.handler.MCFramesProxy_client", serverSide = "mrtjp.mcframes.handler.MCFramesProxy_server")
-  var proxy: MCFramesProxy_server = _
-
   @Mod.EventHandler
   def preInit(event: FMLPreInitializationEvent) {
-    MinecraftForge.EVENT_BUS.register(proxy)
-    proxy.preinit()
+    MCFramesProxy.preinit()
   }
 
   @Mod.EventHandler
   def init(event: FMLInitializationEvent) {
     MCFramesConfig.loadConfig()
-    proxy.init()
+    MCFramesProxy.init()
   }
 
   @Mod.EventHandler
   def postInit(event: FMLPostInitializationEvent) {
-    proxy.postinit()
+    MCFramesProxy.postinit()
   }
 }
 

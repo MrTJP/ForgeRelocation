@@ -10,6 +10,7 @@ import net.minecraftforge.common.capabilities.Capability
 
 import scala.language.implicitConversions
 
+//TODO Using implicits to extend classes is bad practice. This should be removed.
 object Implicits {
   implicit class WorldExt(self: World) {
     def getTileCap[T](pos: BlockPos, cap: Capability[T]): Option[T] =

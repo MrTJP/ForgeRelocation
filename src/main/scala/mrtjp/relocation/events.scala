@@ -10,6 +10,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.world.{ChunkWatchEvent, WorldEvent}
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 object RelocationEventHandler {
   @SubscribeEvent
@@ -46,8 +47,11 @@ object RelocationClientEventHandler {
   }
 
   @SubscribeEvent
+  @SideOnly(Side.CLIENT)
   def onRenderWorld(e: RenderWorldLastEvent) {
-    //    MovingRenderer.onRenderWorldEvent()
+    MovingRenderer.onPreRenderTick(e.getPartialTicks)
+    MovingRenderer.onRenderWorldEvent()
+    MovingRenderer.onPostRenderTick()
   }
 
   @SubscribeEvent

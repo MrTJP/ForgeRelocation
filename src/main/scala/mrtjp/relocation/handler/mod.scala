@@ -10,8 +10,8 @@ import mrtjp.relocation.api._
 import mrtjp.relocation.{BlockMovingRow, MovingTileRegistry}
 import net.minecraft.client.gui.GuiScreen
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
-import net.minecraftforge.fml.common.{Mod, SidedProxy}
 import org.apache.logging.log4j.{LogManager, Logger}
 
 @Mod(modid = RelocationMod.modID, useMetadata = true, modLanguage = "scala", guiFactory = "mrtjp.relocation.handler.GuiConfigFactory")
@@ -27,35 +27,31 @@ object RelocationMod {
 
   var blockMovingRow: BlockMovingRow = _
 
-  @SidedProxy(clientSide = "mrtjp.relocation.handler.RelocationProxy_client", serverSide = "mrtjp.relocation.handler.RelocationProxy_server")
-  var proxy: RelocationProxy_server = _
-
   @Mod.EventHandler
   def preInit(event: FMLPreInitializationEvent) {
-    MinecraftForge.EVENT_BUS.register(proxy)
-    proxy.preinit()
+    RelocationProxy.preinit()
   }
 
   @Mod.EventHandler
   def init(event: FMLInitializationEvent) {
     RelocationAPI_Impl.isPreInit = false
     RelocationConfig.loadConfig()
-    proxy.init()
+    RelocationProxy.init()
   }
 
   @Mod.EventHandler
   def postInit(event: FMLPostInitializationEvent) {
-    proxy.postinit()
+    RelocationProxy.postinit()
   }
 }
 
-class RelocationConfigGui(parent: GuiScreen) extends SpecialConfigGui(parent, "ForgeRelocation", RelocationConfig.config)
+class RelocationConfigGui(parent: GuiScreen) extends SpecialConfigGui(parent, "forgerelocation", RelocationConfig.config)
 
 class GuiConfigFactory extends TModGuiFactory {
   override def createConfigGui(parentScreen: GuiScreen): GuiScreen = new RelocationConfigGui(parentScreen)
 }
 
-object RelocationConfig extends ModConfig("ForgeRelocation") {
+object RelocationConfig extends ModConfig("forgerelocation") {
   var moveLimit = 2048
 
   var moverMap = Array(

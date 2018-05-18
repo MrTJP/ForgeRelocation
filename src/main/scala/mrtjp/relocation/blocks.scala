@@ -24,8 +24,6 @@ class BlockMovingRow extends MultiTileBlock(Material.IRON) {
   setHardness(-1F)
   setSoundType(SoundType.GROUND)
   setCreativeTab(null)
-  setRegistryName(new ResourceLocation(RelocationMod.modID, "blockmovingrow"))
-  addTile(classOf[TileMovingRow], 0)
 
   override def getRenderType(state: IBlockState): EnumBlockRenderType = EnumBlockRenderType.INVISIBLE
 }
@@ -39,7 +37,7 @@ object TileMovingRow {
     val p = r.pos.offset(r.moveDir)
     val bl = w.getBlockState(p)
 
-    if (bl == RelocationMod.blockMovingRow) return Cuboid6.full.copy()
+    if (bl == RelocationMod.blockMovingRow.getDefaultState) return Cuboid6.full.copy()
 
     bl.getCollisionBoundingBox(w, p) match {
       case aabb: AxisAlignedBB => new Cuboid6(aabb).subtract(new Vector3(r.pos.getX, r.pos.getY, r.pos.getZ))

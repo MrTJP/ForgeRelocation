@@ -1,46 +1,59 @@
 buildscript {
     repositories {
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
+
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'scala'
+apply plugin: 'maven'
 
-version = "0.0.2"
-group = "mrtjp.forgerelocation"
-archivesBaseName = "forgerelocation"
+group = "mrtjp.relocation"
+archivesBaseName = "ForgeRelocation"
 
-sourceCompatibility = targetCompatibility = '1.8'
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
-compileScala {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
-
-minecraft {
-    version = "14.23.3.2678"
-    runDir = "run"
-    mappings = "snapshot_20171120"
+ext.configFile = file "build.properties"
+configFile.withReader {
+    // Load config.  It shall from now be referenced as simply config or project.config
+    def prop = new Properties()
+    prop.load(it)
+    project.ext.config = new ConfigSlurper().parse prop
 }
 
 repositories {
-    jcenter()
-    maven { url "https://modmaven.k-4u.nl/" }
+    maven {
+        name "chickenbones"
+        url "http://chickenbones.net/maven/"
+    }
+}
+
+configurations {
+    deployerJars
 }
 
 dependencies {
-    deobfCompile "mrtjp:MrTJPCore:${project.mc_version}-${project.tjpcore_version}:universal"
-    deobfCompile "codechicken:CodeChickenLib:${project.mc_version}-${project.ccl_version}:universal"
+    deployerJars "org.apache.maven.wagon:wagon-ftp:2.2"
 
-    runtime "mezz.jei:jei_${project.mc_version}:+"
+    compile "mrtjp:MrTJPCore:${config.mc_version}-${config.tjpcore_version}:deobf"
+    compile "codechicken:CodeChickenLib:${config.mc_version}-${config.ccl_version}:deobf"
 
-    compile "org.scala-lang:scala-library:2.11.+"
-    compile "org.scala-lang:scala-compiler:2.11.+"
+}
+
+def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "1")).toString()
+version = "${project.config.mod_version}."+build_number
+println "Starting build for $archivesBaseName $version for MC $config.mc_version-$config.forge_version"
+
+minecraft {
+    version = config.mc_version+"-"+config.forge_version
+    mappings = config.mappings
+    runDir = "run"
+    useDepAts = true
 }
 
 processResources {

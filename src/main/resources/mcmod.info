@@ -1,18 +1,30 @@
 [
   {
-    "modid": "ForgeRelocation",
+    "modid": "forgerelocation",
     "name": "ForgeRelocation",
     "description": "Move blocks from one place to another",
-    "version": "@VERSION@",
-    "mcversion": "@MC_VERSION@",
+    "version": "${mod_version}",
+    "mcversion": "${mc_version}",
     "url": "https://github.com/MrTJP/ForgeRelocation",
     "authors": ["MrTJP", "the_real_farfetchd"],
     "credits": "",
     "logoFile": "",
     "screenshots": [],
-    "requiredMods": ["MrTJPCoreMod"],
-    "dependencies": [],
-    "dependants": [],
+    "requiredMods": ["mrtjpcore"],
+    "dependencies": ["mrtjpcore"],
+    "dependants": ["mcframes"],
+    "useDependencyInformation": true
+  },
+  {
+    "modid": "mcframes",
+    "name": "MCFrames",
+    "description": "Base implementation of frames",
+    "version": "${mod_version}",
+    "mcversion": "${mc_version}",
+    "url": "https://github.com/MrTJP/ForgeRelocation",
+    "authors": [ "MrTJP" ],
+    "requiredMods": ["mrtjpcore", "forgerelocation"],
+    "dependencies": ["mrtjpcore", "forgerelocation"],
     "useDependencyInformation": true
   }
 ]

@@ -6,6 +6,7 @@
 package mrtjp.mcframes.api;
 
 import net.minecraft.block.Block;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
@@ -55,28 +56,14 @@ public abstract class MCFramesAPI {
      */
     public abstract Block getFrameBlock();
 
-    // /**
-    //  * Tessellates the frame model at the given coordinates. Useful for making
-    //  * your block look like the default frame block.
-    //  *
-    //  * @param x    The x coordinate.
-    //  * @param y    The y coordinate.
-    //  * @param z    The z coordinate.
-    //  * @param mask The mask of sides not to render.
-    //  */
-    // public abstract void renderFrame(double x, double y, double z, int mask);
-
     /**
      * Raytrace a frame block at the given world coords with start and end
      * points of a ray.
      *
-     * @param x     The x coordinate.
-     * @param y     The y coordinate.
-     * @param z     The z coordinate.
-     * @param mask  The side mask for the model.
+     * @param pos   The position of the block.
      * @param start The start point of the ray.
      * @param end   The end point of the ray.
      * @return The object position if anything from the frame model was hit.
      */
-    public abstract RayTraceResult raytraceFrame(double x, double y, double z, int mask, Vec3d start, Vec3d end);
+    public abstract RayTraceResult raytraceFrame(BlockPos pos, Vec3d start, Vec3d end);
 }

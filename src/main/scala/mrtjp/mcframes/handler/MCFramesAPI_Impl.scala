@@ -8,8 +8,9 @@ package mrtjp.mcframes.handler
 import java.util.{Set => JSet}
 
 import mrtjp.Implicits._
+import mrtjp.core.vec.ModelRayTracer
 import mrtjp.mcframes.api.{IFrameInteraction, IFramePlacement, MCFramesAPI, StickResolver}
-import mrtjp.mcframes.{ItemBlockFrame, StickRegistry}
+import mrtjp.mcframes.{ItemBlockFrame, RenderFrame, StickRegistry}
 import mrtjp.relocation.api.RelocationAPI
 import net.minecraft.util.math.{BlockPos, Vec3d}
 import net.minecraft.world.World
@@ -31,15 +32,13 @@ object MCFramesAPI_Impl extends MCFramesAPI {
 
   override def getStickResolver = StickResolver_Impl
 
-  // FIXME
-  // override def renderFrame(x: Double, y: Double, z: Double, mask: Int) {
-  //   RenderFrame.render(new Vector3(x, y, z), mask)
-  // }
+//  // FIXME
+//   override def renderFrame(x: Double, y: Double, z: Double, mask: Int) {
+//     RenderFrame.render(new Vector3(x, y, z), mask)
+//   }
 
-  // FIXME
-  override def raytraceFrame(x: Double, y: Double, z: Double, mask: Int, start: Vec3d, end: Vec3d) =
-    null
-  // ModelRayTracer.raytraceModel(x, y, z, start, end, RenderFrame.getOrGenerateModel(mask))
+  override def raytraceFrame(pos:BlockPos, start: Vec3d, end: Vec3d) =
+    ModelRayTracer.raytraceModel(pos.getX, pos.getY, pos.getZ, start, end, RenderFrame.getFrameModel)
 }
 
 object StickResolver_Impl extends StickResolver {

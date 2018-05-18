@@ -5,28 +5,27 @@
  */
 package mrtjp.mcframes
 
+import codechicken.lib.render.CCModel._
+import codechicken.lib.render.{CCModel, OBJParser}
 import codechicken.lib.vec._
 import mrtjp.core.block.BlockCore
 import mrtjp.mcframes.api.{IFrame, IFramePlacement, MCFramesAPI}
-import mrtjp.mcframes.handler.MCFramesMod
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
 import net.minecraft.block.{Block, SoundType}
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{ItemBlock, ItemStack}
-import net.minecraft.util.math.{AxisAlignedBB, BlockPos, RayTraceResult, Vec3d}
+import net.minecraft.util.math.{AxisAlignedBB, BlockPos, Vec3d}
 import net.minecraft.util.{EnumActionResult, EnumFacing, EnumHand, ResourceLocation}
-import net.minecraft.world.World
-import net.minecraftforge.fml.relauncher.{Side, SideOnly}
+import net.minecraft.world.{IBlockAccess, World}
 
-class BlockFrame extends BlockCore(Material.WOOD) with IFrame {
+class BlockFrame extends BlockCore(Material.WOOD) with IFrame
+{
   setResistance(5.0F)
   setHardness(2.0F)
   setSoundType(SoundType.WOOD)
   setCreativeTab(CreativeTabs.TRANSPORTATION)
-  setRegistryName(new ResourceLocation(MCFramesMod.modID, "frame"))
-  setUnlocalizedName(s"${MCFramesMod.modID}.frame")
 
   override def getItemBlockClass: Class[ItemBlockFrame] = classOf[ItemBlockFrame]
 
@@ -37,14 +36,16 @@ class BlockFrame extends BlockCore(Material.WOOD) with IFrame {
 
   override def isNormalCube(state: IBlockState): Boolean = false
 
-  // TODO pretty sure this isn't really needed
-  // override def collisionRayTrace(blockState: IBlockState, worldIn: World, pos: BlockPos, start: Vec3d, end: Vec3d): RayTraceResult =
-  //   MCFramesAPI.instance.raytraceFrame(pos.getX, pos.getY, pos.getZ, 0, start, end)
+    override protected def rayTrace(pos:BlockPos, start:Vec3d, end:Vec3d, boundingBox:AxisAlignedBB) =
+        MCFramesAPI.instance.raytraceFrame(pos, start, end)
+
+    override def isSideSolid(base_state:IBlockState, world:IBlockAccess, pos:BlockPos, side:EnumFacing) = false
 
   // TODO this is just the default result, not needed
   // @SideOnly(Side.CLIENT)
   // override def getSelectedBoundingBox(state: IBlockState, worldIn: World, pos: BlockPos): AxisAlignedBB =
   //   Cuboid6.full.copy.add(pos).aabb()
+
 }
 
 object ItemBlockFrame {
@@ -65,4 +66,20 @@ class ItemBlockFrame(b: Block) extends ItemBlock(b) {
   // this was func_150936_a, not sure if this is the correct method
   override def canPlaceBlockOnSide(worldIn: World, pos: BlockPos, side: EnumFacing, player: EntityPlayer, stack: ItemStack): Boolean =
     true
+}
+
+object RenderFrame
+{
+    private val model = parseModel("frame")
+
+    private def parseModel(name:String) =
+    {
+        val m = combine(OBJParser.parseModels(new ResourceLocation(
+            "mcframes", "models/block/"+name+".obj"), 7, null).values())
+
+        m.apply(new Scale(1.00075, 1.00075, 1.00075))
+        m
+    }
+
+    def getFrameModel:CCModel = model
 }

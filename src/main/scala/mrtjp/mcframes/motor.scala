@@ -21,19 +21,17 @@ import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.capabilities.Capability
 
-class BlockMotor extends MultiTileBlock(Material.IRON) {
+class BlockMotor extends MultiTileBlock(Material.IRON)
+{
   setHardness(5f)
   setResistance(10f)
   setSoundType(SoundType.METAL)
   setCreativeTab(CreativeTabs.TRANSPORTATION)
-  setRegistryName(new ResourceLocation(MCFramesMod.modID, "motor"))
-  setUnlocalizedName(s"${MCFramesMod.modID}.motor")
-  addTile(classOf[TileMotor], 0)
 
   override def createBlockState(): BlockStateContainer =
     new BlockStateContainer(this, MultiTileBlock.TILE_INDEX, BlockDirectional.FACING, BlockMotor.Rotation)
@@ -112,24 +110,20 @@ class TileMotor extends MTBlockTile with TTileOrient with IFrame {
   override def stickOut(w: World, pos: BlockPos, side: EnumFacing): Boolean = side == this.side.getOpposite
   override def stickIn(w: World, pos: BlockPos, side: EnumFacing): Boolean = side != this.side.getOpposite
 
-  override def updateClient(): Unit = updateBoth()
+  override def updateServer()
+  {
+    if (getWorld.isBlockIndirectlyGettingPowered(getPos) > 0) {
+      val pos = getPos.offset(side.getOpposite)
+      if (getWorld.isAirBlock(pos)) return
 
-  override def updateServer(): Unit = updateBoth()
-
-  // FIXME: Why is update() final?
-  private def updateBoth(): Unit = {
-    if (!world.isRemote && world.isBlockIndirectlyGettingPowered(pos) > 0) {
-      val pos = this.pos.offset(side.getOpposite)
-      if (world.isAirBlock(pos)) return
-
-      if (!RelocationAPI.instance.isMoving(world, pos) &&
-        !RelocationAPI.instance.isMoving(world, pos)) {
+      if (!RelocationAPI.instance.isMoving(getWorld, pos) &&
+        !RelocationAPI.instance.isMoving(getWorld, pos)) {
         val blocks = MCFramesAPI.instance.getStickResolver
-          .getStructure(world, pos, pos)
+          .getStructure(getWorld, pos, pos)
 
         val r = RelocationAPI.instance.getRelocator
         r.push()
-        r.setWorld(world)
+        r.setWorld(getWorld)
         r.setDirection(getMoveDir)
         r.setSpeed(1 / 16D)
         r.addBlocks(blocks)
@@ -139,14 +133,14 @@ class TileMotor extends MTBlockTile with TTileOrient with IFrame {
     }
   }
 
-  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = capability match {
-    case IFrame.CAPABILITY => true
-    case _ => super.hasCapability(capability, facing)
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
+    if (capability == IFrame.CAPABILITY) return true
+    super.hasCapability(capability, facing)
   }
 
-  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = capability match {
-    case IFrame.CAPABILITY => this.asInstanceOf[T]
-    case _ => super.getCapability(capability, facing)
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+    if (capability == IFrame.CAPABILITY) return this.asInstanceOf[T]
+    super.getCapability(capability, facing)
   }
 }
 

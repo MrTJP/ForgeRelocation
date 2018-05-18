@@ -14,12 +14,13 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import mrtjp.relocation.api.Relocator;
 
 /**
- * Interface that can be implemented on Blocks or as a capability that wish to
- * act as frames, which are the blocks that stick together and form a
- * moving structure when moved through the {@link Relocator}. No other action besides
- * implementation of this interface is needed for the block to function.
+ * Interface that can be implemented on Blocks or as a tile capability that wish to act as frames,
+ * which are the blocks that stick together and form a moving structure when moved through the
+ * {@link Relocator}. No other action besides implementation of this interface is needed for the
+ * block to function.
  */
-public interface IFrame {
+public interface IFrame
+{
     @CapabilityInject(IFrame.class)
     Capability<IFrame> CAPABILITY = null;
 
@@ -32,7 +33,7 @@ public interface IFrame {
      *
      * @param w    The world.
      * @param pos  The block's position.
-     * @param side The side of this block, as a ForgeDirection
+     * @param side The side of this block.
      * @return True if the side can grab another block.
      */
     boolean stickOut(World w, BlockPos pos, EnumFacing side);
@@ -46,7 +47,7 @@ public interface IFrame {
      *
      * @param w    The world.
      * @param pos  The block's position.
-     * @param side The side of this block, as a ForgeDirection
+     * @param side The side of this block.
      * @return True if the side can be grabbed by a frame block.
      */
     boolean stickIn(World w, BlockPos pos, EnumFacing side);
