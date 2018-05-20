@@ -152,7 +152,7 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
 
     def generateModel(mask:Int) =
     {
-        var m = modelParts("frame")
+        var m = modelParts("frame").copy
 
         for (s <- 0 until 6) if ((mask&1<<s) == 0)
             m = combine(Seq(m, modelParts("cross_"+s)))
@@ -167,4 +167,3 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
         m.computeLighting(LightModel.standardLightModel)
     }
 }
-
