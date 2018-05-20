@@ -36,10 +36,19 @@ object RelocationEventHandler {
       MovementManager2.onTick(false)
     }
   }
+
+  @SubscribeEvent
+  def worldTick(event: TickEvent.WorldTickEvent) {
+//    if (event.side.isServer && event.phase == TickEvent.Phase.END) {
+//      RelocationSPH.onTickEnd()
+//      MovementManager2.onTick(false)
+//    }
+  }
 }
 
 object RelocationClientEventHandler {
   @SubscribeEvent
+  @SideOnly(Side.CLIENT)
   def onRenderTick(e: TickEvent.RenderTickEvent) {
     //    if (e.phase == TickEvent.Phase.START)
     //      MovingRenderer.onPreRenderTick(e.renderTickTime)
@@ -55,8 +64,17 @@ object RelocationClientEventHandler {
   }
 
   @SubscribeEvent
+  @SideOnly(Side.CLIENT)
   def clientTick(event: TickEvent.ClientTickEvent) {
     if (event.phase == TickEvent.Phase.END)
       MovementManager2.onTick(true)
+  }
+
+  @SubscribeEvent
+  @SideOnly(Side.CLIENT)
+  def worldTick(event: TickEvent.WorldTickEvent)
+  {
+//    if (event.phase == TickEvent.Phase.END)
+//      MovementManager2.onTick(true)
   }
 }

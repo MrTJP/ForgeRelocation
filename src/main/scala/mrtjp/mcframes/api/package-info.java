@@ -4,6 +4,7 @@
  * All rights reserved.
  */
 
-//@API(owner = "MCFrames", provides = "MCFrames|API", apiVersion = "@VERSION@.@BUILD_NUMBER@")
+@API(owner = "MCFrames", provides = "MCFrames|API", apiVersion = "@VERSION@.@BUILD_NUMBER@")
 package mrtjp.mcframes.api;
 
+import net.minecraftforge.fml.common.API;

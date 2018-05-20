@@ -15,6 +15,7 @@ import net.minecraft.util.EnumBlockRenderType
 import net.minecraft.util.math.BlockPos
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
+//TODO find ways to remove all asm stuff
 object ASMHacks {
   @SideOnly(Side.CLIENT)
   def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, unused: Float): Unit = {

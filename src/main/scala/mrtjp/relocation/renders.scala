@@ -18,9 +18,11 @@ import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.resources.IResourceManager
+import net.minecraft.crash.{CrashReport, CrashReportCategory}
+import net.minecraft.init.Blocks
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.{BlockRenderLayer, EnumBlockRenderType, EnumFacing}
+import net.minecraft.util.{BlockRenderLayer, EnumBlockRenderType, EnumFacing, ReportedException}
 import net.minecraft.world.biome.Biome
 import net.minecraft.world.{EnumSkyBlock, IBlockAccess, World, WorldType}
 import net.minecraftforge.client.{ForgeHooksClient, MinecraftForgeClient}
@@ -30,7 +32,7 @@ import org.lwjgl.opengl.GL11._
 object MovingRenderer
 {
     var isRendering = false
-    var disableUnmovedBlockRender = true
+    var allowQueuedBlockRender = false
 
     private var initialized = false
 
@@ -52,25 +54,28 @@ object MovingRenderer
         }
     }
 
-    private def render(pos:BlockPos, rpos:Vector3)
+    private def render(currentPos:BlockPos, moveDir:EnumFacing, startOfRow:BlockPos, endOfRow:BlockPos, rpos:Vector3)
     {
-        val block = mc.world.getBlockState(pos)
-        if (block.getBlock.isAir(block, mc.world, pos)) return
+        val block = mc.world.getBlockState(currentPos)
+        if (block.getBlock.isAir(block, mc.world, currentPos)) return
         if (block.getRenderType == EnumBlockRenderType.INVISIBLE) return
 
+        movingWorld.locate(currentPos, moveDir, startOfRow, endOfRow)
+
         val oldOcclusion = mc.gameSettings.ambientOcclusion
-        mc.gameSettings.ambientOcclusion = 0
+//        mc.gameSettings.ambientOcclusion = 0
 
         val engine = TileEntityRendererDispatcher.instance.renderEngine
         if (engine != null) engine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
         mc.entityRenderer.enableLightmap()
 
-        val light = movingWorld.getCombinedLight(pos, 0)
+        RenderHelper.enableStandardItemLighting()
+        val light = movingWorld.getCombinedLight(currentPos, 0)
         val l1 = light % 65536
         val l2 = light / 65536
-
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, l1, l2)
         GlStateManager.color(1, 1, 1, 1)
+
         RenderHelper.disableStandardItemLighting()
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         GlStateManager.enableBlend()
@@ -91,9 +96,9 @@ object MovingRenderer
 
                 GlStateManager.color(1f, 1f, 1f, 1f)
 
-                disableUnmovedBlockRender = false
-                mc.getBlockRendererDispatcher.renderBlock(block, pos, movingWorld, tes.getBuffer)
-                disableUnmovedBlockRender = true
+                allowQueuedBlockRender = true
+                mc.getBlockRendererDispatcher.renderBlock(block, currentPos, movingWorld, tes.getBuffer)
+                allowQueuedBlockRender = false
 
                 tes.getBuffer.setTranslation(0, 0, 0)
                 tes.draw()
@@ -122,8 +127,9 @@ object MovingRenderer
             // TODO make block renderer not check sides
         }
 
-        for (s <- MovementManager2.getWorldStructs(mc.world).structs) for (b <- s.preMoveBlocks)
-            render(b, renderPos(s, frame))
+        for (s <- MovementManager2.getWorldStructs(mc.world).structs)
+            for (r <- s.rows) for (b <- r.preMoveBlocks)
+            render(b, s.moveDir, r.allBlocks.head, r.allBlocks.last, renderPos(s, frame))
     }
 
     def onPostRenderTick()
@@ -138,24 +144,80 @@ object MovingRenderer
 
 class MovingWorld(val parentWorld:World) extends IBlockAccess
 {
-    def computeLightValue(pos:BlockPos, tpe:EnumSkyBlock) =
+    var currentPos:BlockPos = _
+    var newPos:BlockPos = _
+    var moveDir:EnumFacing = _
+
+    var firstBlockInRow:BlockPos = _
+    var lastBlockInRow:BlockPos = _
+
+    var disableOffset = false
+    var isCalculatingLight = false
+
+    def locate(pos:BlockPos, dir:EnumFacing, first:BlockPos, last:BlockPos)
     {
-        (for (s <- EnumFacing.VALUES; c = pos.offset(s))
-            yield parentWorld.getLightFor(tpe, c)).max
+        currentPos = pos
+        newPos = pos.offset(dir)
+        moveDir = dir
+
+        firstBlockInRow = first
+        lastBlockInRow = last
     }
 
+    def transformPos(pos:BlockPos):BlockPos = if (disableOffset) pos else pos.offset(moveDir)
+    
     override def getCombinedLight(pos:BlockPos, lightValue:Int):Int =
-        if (MovementManager2.isMoving(Minecraft.getMinecraft.world, pos)) {
-            val l1 = computeLightValue(pos, EnumSkyBlock.SKY)
-            val l2 = computeLightValue(pos, EnumSkyBlock.BLOCK)
-            l1 << 20 | Seq(l2, lightValue).max << 4
-        } else {
-            parentWorld.getCombinedLight(pos, lightValue)
+    {
+        isCalculatingLight = true
+
+        val tpos = transformPos(pos)
+        var lightS0 = parentWorld.getLightFromNeighborsFor(EnumSkyBlock.SKY, tpos)
+        var lightB0 = math.max(lightValue, parentWorld.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, tpos))
+
+        var lightS1 = parentWorld.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos)
+        var lightB1 = math.max(lightValue, parentWorld.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos))
+
+        if (lightS0 == 0 && lightB0 == 0) {
+            lightS0 = lightS1
+            lightB0 = lightB1
+        } else if (lightS1 == 0 && lightB1 == 0) {
+            lightS1 = lightS0
+            lightB1 = lightB0
         }
 
-    override def getTileEntity(pos:BlockPos):TileEntity = parentWorld.getTileEntity(pos)
-    override def getBlockState(pos:BlockPos):IBlockState = parentWorld.getBlockState(pos)
+        val lightSMid = (lightS0+lightS1)/2
+        val lightBMid = (lightB0+lightB1)/2
+
+        val light = lightSMid << 20 | lightBMid << 4
+
+        isCalculatingLight = false
+
+        light
+    }
+
+    override def getTileEntity(pos:BlockPos):TileEntity =
+    {
+        if (!isCalculatingLight)
+            return parentWorld.getTileEntity(pos)
+
+        parentWorld.getTileEntity(transformPos(pos))
+    }
+
+    override def getBlockState(pos:BlockPos):IBlockState =
+    {
+        if (!isCalculatingLight)
+            return parentWorld.getBlockState(pos)
+
+        val offsetPos = transformPos(pos)
+
+        if (offsetPos == firstBlockInRow)
+            return Blocks.AIR.getDefaultState
+
+        parentWorld.getBlockState(offsetPos)
+    }
+
     override def isAirBlock(pos:BlockPos):Boolean = parentWorld.isAirBlock(pos)
+
     override def getBiome(pos:BlockPos):Biome = parentWorld.getBiome(pos)
     override def getStrongPower(pos:BlockPos, direction:EnumFacing):Int = parentWorld.getStrongPower(pos, direction)
     override def getWorldType:WorldType = parentWorld.getWorldType
@@ -164,12 +226,45 @@ class MovingWorld(val parentWorld:World) extends IBlockAccess
 
 class MovingBlockRenderDispatcher(val parentDispatcher:BlockRendererDispatcher, colors:BlockColors) extends BlockRendererDispatcher(parentDispatcher.getBlockModelShapes, colors)
 {
-    override def renderBlock(state:IBlockState, pos:BlockPos, blockAccess:IBlockAccess, bufferBuilderIn:BufferBuilder) =
+    override def renderBlock(state:IBlockState, pos:BlockPos, blockAccess:IBlockAccess, bufferBuilderIn:BufferBuilder):Boolean =
     {
-        if (MovingRenderer.disableUnmovedBlockRender && MovementManager2.isMoving(Minecraft.getMinecraft.world, pos))
-            false
-        else
-            parentDispatcher.renderBlock(state, pos, blockAccess, bufferBuilderIn)
+        val isMoving = MovementManager2.isMoving(Minecraft.getMinecraft.world, pos)
+
+        if (!MovingRenderer.allowQueuedBlockRender && isMoving) return false
+
+        val isAdjacentMoving = MovementManager2.isAdjacentToMoving(Minecraft.getMinecraft.world, pos)
+        if (!isAdjacentMoving)
+            return parentDispatcher.renderBlock(state, pos, blockAccess, bufferBuilderIn)
+
+        try {
+            val enumblockrendertype = state.getRenderType
+            if (enumblockrendertype == EnumBlockRenderType.INVISIBLE) return false
+
+            var state2:IBlockState = state
+
+            if (blockAccess.getWorldType != WorldType.DEBUG_ALL_BLOCK_STATES)
+                try
+                    state2 = state.getActualState(blockAccess, pos)
+                catch {
+                    case _:Exception =>
+                }
+
+            enumblockrendertype match {
+                case EnumBlockRenderType.MODEL if isAdjacentMoving =>
+                    val model = this.getModelForState(state)
+                    state2 = state.getBlock.getExtendedState(state, blockAccess, pos)
+                    getBlockModelRenderer.renderModel(blockAccess, model, state2, pos, bufferBuilderIn, false)
+                case _ =>
+                    parentDispatcher.renderBlock(state, pos, blockAccess, bufferBuilderIn)
+            }
+        }
+        catch {
+            case throwable:Throwable =>
+                val crashreport = CrashReport.makeCrashReport(throwable, "Tesselating block in world")
+                val crashreportcategory = crashreport.makeCategory("Block being tesselated")
+                CrashReportCategory.addBlockInfo(crashreportcategory, pos, state.getBlock, state.getBlock.getMetaFromState(state))
+                throw new ReportedException(crashreport)
+        }
     }
 
     override def renderBlockDamage(state:IBlockState, pos:BlockPos, texture:TextureAtlasSprite, blockAccess:IBlockAccess) {
