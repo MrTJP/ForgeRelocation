@@ -3,18 +3,18 @@
  * Created by MrTJP.
  * All rights reserved.
  */
-package mrtjp.mcframes.api;
+package mrtjp.relocation.api;
 
+import mrtjp.relocation.api.IFrame;
 import mrtjp.relocation.api.RelocationAPI;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
- * Class used instead of {@link IFrame} to add frame capabilities
- * to a block without having the block or tile in that location
- * implement the IFrame interface. This class must be registered in
- * the {@link RelocationAPI}.
+ * Class used instead of {@link IFrame} to add frame capabilities to a block without having
+ * the block or tile in that location implement the IFrame interface or capability. This
+ * class must be registered in the {@link RelocationAPI}.
  */
 public interface IFrameInteraction extends IFrame {
     /**

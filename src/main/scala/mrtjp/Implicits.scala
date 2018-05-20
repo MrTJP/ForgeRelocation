@@ -21,8 +21,8 @@ object Implicits {
         case _ => None
       }
 
-    def getBlock(pos: BlockPos): Option[Block] =
-      Option(self.getBlockState(pos)).map(_.getBlock)
+//    def getBlock(pos: BlockPos): Option[Block] =
+//      Option(self.getBlockState(pos)).map(_.getBlock)
 
 //    def getBlockMeta(pos: BlockPos): Option[Int] = getBlock(pos).map(_.getMetaFromState(self.getBlockState(pos)))
 

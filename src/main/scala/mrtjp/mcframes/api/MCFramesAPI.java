@@ -5,6 +5,7 @@
  */
 package mrtjp.mcframes.api;
 
+import mrtjp.relocation.api.IFrameInteraction;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -30,23 +31,6 @@ public abstract class MCFramesAPI {
      * @param placement The custom frame placement to register.
      */
     public abstract void registerFramePlacement(IFramePlacement placement);
-
-    /**
-     * Used to register a {@link IFrameInteraction}, which is a class that
-     * can be used to add frame-like properties to any block.
-     *
-     * @param interaction The interaction to register.
-     */
-    public abstract void registerFrameInteraction(IFrameInteraction interaction);
-
-    /**
-     * Getter for the optional StickResolver object which can be used to quicky
-     * resolve a structure based on default Relocation frame blocks and stick
-     * rules.
-     *
-     * @return The StickResolver object
-     */
-    public abstract StickResolver getStickResolver();
 
     /**
      * Getter for the instance variable of the Frame block. Used if external

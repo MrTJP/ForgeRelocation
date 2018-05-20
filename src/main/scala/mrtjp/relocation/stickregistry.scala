@@ -3,10 +3,10 @@
  * Created by MrTJP.
  * All rights reserved.
  */
-package mrtjp.mcframes
+package mrtjp.relocation
 
 import mrtjp.Implicits._
-import mrtjp.mcframes.api.{IFrame, IFrameInteraction}
+import mrtjp.relocation.api.{IFrame, IFrameInteraction}
 import net.minecraft.block.Block
 import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState

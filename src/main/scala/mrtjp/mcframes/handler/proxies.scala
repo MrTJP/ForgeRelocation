@@ -8,8 +8,8 @@ package mrtjp.mcframes.handler
 import java.util.concurrent.Callable
 
 import mrtjp.mcframes._
-import mrtjp.mcframes.api.IFrame
 import mrtjp.mcframes.handler.MCFramesMod._
+import mrtjp.relocation.api.IFrame
 import net.minecraft.item.ItemBlock
 import net.minecraft.nbt.NBTBase
 import net.minecraft.util.EnumFacing

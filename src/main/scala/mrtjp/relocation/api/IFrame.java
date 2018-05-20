@@ -3,15 +3,13 @@
  * Created by MrTJP.
  * All rights reserved.
  */
-package mrtjp.mcframes.api;
+package mrtjp.relocation.api;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
-
-import mrtjp.relocation.api.Relocator;
 
 /**
  * Interface that can be implemented on Blocks or as a tile capability that wish to act as frames,

@@ -9,9 +9,8 @@ import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.vec.Rotation
 import mrtjp.Implicits._
 import mrtjp.core.block._
-import mrtjp.mcframes.api.{IFrame, MCFramesAPI}
 import mrtjp.mcframes.handler.MCFramesMod
-import mrtjp.relocation.api.RelocationAPI
+import mrtjp.relocation.api.{IFrame, RelocationAPI}
 import net.minecraft.block.material.Material
 import net.minecraft.block.properties.PropertyInteger
 import net.minecraft.block.state.{BlockFaceShape, BlockStateContainer, IBlockState}
@@ -118,7 +117,7 @@ class TileMotor extends MTBlockTile with TTileOrient with IFrame {
 
       if (!RelocationAPI.instance.isMoving(getWorld, pos) &&
         !RelocationAPI.instance.isMoving(getWorld, pos)) {
-        val blocks = MCFramesAPI.instance.getStickResolver
+        val blocks = RelocationAPI.instance.getStickResolver
           .getStructure(getWorld, pos, pos)
 
         val r = RelocationAPI.instance.getRelocator

@@ -3,7 +3,7 @@
  * Created by MrTJP.
  * All rights reserved.
  */
-package mrtjp.mcframes.api;
+package mrtjp.relocation.api;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

@@ -16,8 +16,9 @@ import codechicken.lib.util.TransformUtils
 import codechicken.lib.vec._
 import codechicken.lib.vec.uv.IconTransformation
 import mrtjp.core.block.BlockCore
-import mrtjp.mcframes.api.{IFrame, IFramePlacement, MCFramesAPI}
+import mrtjp.mcframes.api.{IFramePlacement, MCFramesAPI}
 import mrtjp.mcframes.handler.MCFramesMod
+import mrtjp.relocation.api.IFrame
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
 import net.minecraft.block.{Block, SoundType}

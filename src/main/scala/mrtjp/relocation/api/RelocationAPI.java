@@ -69,6 +69,14 @@ public abstract class RelocationAPI {
     public abstract void registerMandatoryMover(String key, String value);
 
     /**
+     * Used to register a {@link IFrameInteraction}, which is a class that
+     * can be used to add frame-like properties to any block.
+     *
+     * @param interaction The interaction to register.
+     */
+    public abstract void registerFrameInteraction(IFrameInteraction interaction);
+
+    /**
      * Getter for the global Relocator object which is what is used
      * to actually initiate movements.
      *
@@ -77,13 +85,20 @@ public abstract class RelocationAPI {
     public abstract Relocator getRelocator();
 
     /**
+     * Getter for the optional StickResolver object which can be used to quicky
+     * resolve a structure based on default {@link IFrame} implmementation and
+     * and Relocation stick rules.
+     *
+     * @return The StickResolver object
+     */
+    public abstract StickResolver getStickResolver();
+
+    /**
      * Used to check if the given block is currently moving. This method is
      * client and server safe.
      *
      * @param world The world the block is in.
-     * @param x     The x coordinate of the block.
-     * @param y     The y coordinate of the block.
-     * @param z     The z coordinate of the block.
+     * @param pos   The position of the block.
      * @return True if the block is currently moving.
      */
     public abstract boolean isMoving(World world, BlockPos pos);

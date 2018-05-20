@@ -5,10 +5,8 @@
  */
 package mrtjp.mcframes.handler
 
-import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.mcframes.api.MCFramesAPI
-import mrtjp.mcframes.{BlockFrame, BlockMotor, StickRegistry}
-import net.minecraft.client.gui.GuiScreen
+import mrtjp.mcframes.{BlockFrame, BlockMotor}
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 
@@ -34,7 +32,6 @@ object MCFramesMod
     @Mod.EventHandler
     def init(event:FMLInitializationEvent)
     {
-        MCFramesConfig.loadConfig()
         MCFramesProxy.init()
     }
 
@@ -43,38 +40,4 @@ object MCFramesMod
     {
         MCFramesProxy.postinit()
     }
-}
-
-class MCFramesConfigGui(parent:GuiScreen) extends SpecialConfigGui(parent, "MCFrames", MCFramesConfig.config)
-
-class GuiConfigFactory extends TModGuiFactory
-{
-    override def createConfigGui(parentScreen:GuiScreen):GuiScreen = new MCFramesConfigGui(parentScreen)
-}
-
-object MCFramesConfig extends ModConfig("MCFrames")
-{
-    var setMap = Array(
-        "minecraft:bed -> minecraft:bed",
-        "minecraft:wooden_door -> minecraft:wooden_door",
-        "minecraft:iron_door -> minecraft:iron_door"
-    )
-
-    override protected def initValues()
-    {
-        val sets = BaseCategory("Latched Sets", buildLatchSetsDesc)
-        setMap = sets.put("latch registry", setMap)
-        setMap = sets.put("latch registry", StickRegistry.parseAndAddLatchSets(setMap), force = true)
-    }
-
-    def buildLatchSetsDesc:String =
-        """Used to define which pairs of blocks will be stuck together.
-          |Latched sets will always move in pairs, even if only one of them are actually connected to a frame.
-          |'block1 -> block2' means that if block1 is moved, any block2 connected to it will also move.
-          |However, moving block2 does not move block1. To do that, you must also register block2 -> block1.
-          |Sets are defined using the syntax of key -> value.
-          |Possible keys and values:
-          |    '<modID>:<blockname>' - to assign block from a mod for every meta.
-          |    '<modID>:<blockname>#<property>=<value>[,<property>=<value>[,…]]' - to assign block from mod with only the given properties matching.
-        """.stripMargin
 }
