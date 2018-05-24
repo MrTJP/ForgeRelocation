@@ -5,7 +5,6 @@
  */
 package mrtjp.relocation
 
-import mrtjp.Implicits._
 import mrtjp.core.world.WorldLib
 import mrtjp.core.world.WorldLib._
 import mrtjp.relocation.api.ITileMover
@@ -92,19 +91,19 @@ object MovingTileRegistry extends ITileMover {
 class CoordPushTileMover extends ITileMover {
   override def canMove(w: World, pos: BlockPos) = true
 
-  override def move(w: World, posIn: BlockPos, side: EnumFacing) {
-    val (state, te) = w.getBlockAndTE(posIn)
-    val pos = posIn.offset(side)
+  override def move(w: World, pos: BlockPos, side: EnumFacing) {
+    val (state, te) = (w.getBlockState(pos), w.getTileEntity(pos))
+    val pos2 = pos.offset(side)
     if (te != null) {
       te.invalidate()
-      uncheckedRemoveTileEntity(w, posIn)
+      uncheckedRemoveTileEntity(w, pos)
     }
-    uncheckedSetBlock(w, posIn, Blocks.AIR.getDefaultState)
-    uncheckedSetBlock(w, pos, state)
+    uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
+    uncheckedSetBlock(w, pos2, state)
     if (te != null) {
-      te.setPos(pos)
+      te.setPos(pos2)
       te.validate()
-      uncheckedSetTileEntity(w, pos, te)
+      uncheckedSetTileEntity(w, pos2, te)
     }
   }
 
@@ -114,25 +113,25 @@ class CoordPushTileMover extends ITileMover {
 class SaveLoadTileMover extends ITileMover {
   override def canMove(w: World, pos: BlockPos) = true
 
-  override def move(w: World, posIn: BlockPos, side: EnumFacing) {
-    val (state, te) = w.getBlockAndTE(posIn)
-    val pos = posIn.offset(side)
+  override def move(w: World, pos: BlockPos, side: EnumFacing) {
+    val (state, te) = (w.getBlockState(pos), w.getTileEntity(pos))
+    val pos2 = pos.offset(side)
     val tag = if (te != null) {
       val tag = new NBTTagCompound
       te.writeToNBT(tag)
-      tag.setInteger("x", pos.getX)
-      tag.setInteger("y", pos.getY)
-      tag.setInteger("z", pos.getZ)
+      tag.setInteger("x", pos2.getX)
+      tag.setInteger("y", pos2.getY)
+      tag.setInteger("z", pos2.getZ)
       te.onChunkUnload()
-      w.removeTileEntity(posIn)
+      w.removeTileEntity(pos)
       tag
     }
     else null
-    uncheckedSetBlock(w, posIn, Blocks.AIR.getDefaultState)
-    uncheckedSetBlock(w, pos, state)
+    uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
+    uncheckedSetBlock(w, pos2, state)
     if (tag != null) {
       TileEntity.create(w, tag) match {
-        case te: TileEntity => w.getChunkFromBlockCoords(pos).addTileEntity(te)
+        case te: TileEntity => w.getChunkFromBlockCoords(pos2).addTileEntity(te)
         case _ =>
       }
     }

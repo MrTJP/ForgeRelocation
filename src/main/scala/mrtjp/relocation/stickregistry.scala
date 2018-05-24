@@ -5,7 +5,6 @@
  */
 package mrtjp.relocation
 
-import mrtjp.Implicits._
 import mrtjp.relocation.api.{IFrame, IFrameInteraction}
 import net.minecraft.block.Block
 import net.minecraft.block.properties.IProperty
@@ -53,7 +52,9 @@ object StickRegistry
             val b = w.getBlockState(pos).getBlock
             if (b.isInstanceOf[IFrame]) return b.asInstanceOf[IFrame]
 
-            w.getTileCap(pos, IFrame.CAPABILITY).foreach(return _)
+            val te = w.getTileEntity(pos)
+            if (te.hasCapability(IFrame.CAPABILITY, null))
+                return te.getCapability(IFrame.CAPABILITY, null)
 
             interactionList.find(_.canInteract(w, pos)).orNull
         }

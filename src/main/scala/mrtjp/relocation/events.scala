@@ -67,7 +67,7 @@ object RelocationClientEventHandler {
   @SideOnly(Side.CLIENT)
   def clientTick(event: TickEvent.ClientTickEvent) {
     if (event.phase == TickEvent.Phase.END)
-      MovementManager2.onTick(true)
+      MovementManager2.onTick(true) //TODO call from better place. This moves blocks even when client is paused
   }
 
   @SubscribeEvent
