@@ -21,7 +21,6 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection.mutable.{HashMap => MHashMap, MultiMap => MMultiMap, Set => MSet}
 import scala.ref.WeakReference
-import mrtjp.Implicits.{facing2int, int2facing}
 
 object MovementManager2
 {
@@ -128,7 +127,7 @@ object MovementManager2
             val sline = if (shift == 1) line.sorted else line.sorted(Ordering[Int].reverse)
             for ((basis, size) <- MathLib.splitLine(sline, shift)) {
                 val c = MathLib.rhrAxis(moveDir, normal, basis + shift)
-                rowB += new BlockRow(c, moveDir, size)
+                rowB += new BlockRow(c, EnumFacing.getFront(moveDir), size)
             }
         }
 
@@ -353,7 +352,7 @@ class BlockStruct
         out.writeByte(rows.size)
         for (r <- rows) {
             out.writePos(r.pos)
-            out.writeByte(r.moveDir)
+            out.writeByte(r.moveDir.getIndex)
             out.writeShort(r.size)
         }
     }
@@ -364,7 +363,7 @@ class BlockStruct
         speed = in.readFloat()
         val rb = Set.newBuilder[BlockRow]
         for (_ <- 0 until in.readUByte())
-            rb += new BlockRow(in.readPos(), in.readUByte().toInt, in.readShort())
+            rb += new BlockRow(in.readPos(), EnumFacing.getFront(in.readUByte()), in.readShort())
         rows = rb.result()
     }
 }
